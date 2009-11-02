@@ -69,7 +69,8 @@ _SETTINGS = {
     'google': 'http://www.google.ru/search?sourceid=chrome&ie=UTF-8&q=%s',
     'wp': 'http://en.wikipedia.org/wiki/Special:Search?search=%s',
     'wpru': 'http://ru.wikipedia.org/wiki/Special:Search?search=%s',
-  }
+  },
+  'welcome': 'welcome',
 }
 
 # Regular expression for a wiki word.  Wiki words are all letters
@@ -84,7 +85,7 @@ class BaseRequestHandler(webapp.RequestHandler):
   """
 
   def getStartPage(self):
-    return '/welcome'
+    return '/' + _SETTINGS['welcome']
 
   def getWikiContent(self, page_title):
     return WikiContent.gql('WHERE title = :1', self.get_page_name(page_title)).get()
