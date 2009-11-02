@@ -657,7 +657,7 @@ _WIKI_URLS = [('/', MainHandler),
               ('/w/index', IndexHandler),
               ('/w/index.rss', PageRssHandler),
               ('/w/interwiki', InterwikiHandler),
-              ('/users', UsersHandler),
+              ('/w/users', UsersHandler),
               ('/(.+)', ViewHandler)
               ]
 
