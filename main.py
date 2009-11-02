@@ -62,15 +62,15 @@ from wiki_model import WikiUser
 # Set the debug level
 _DEBUG = True
 _ADMIN_EMAIL='justin.forest@gmail.com'
-_WIKI_OPEN = False
 _SETTINGS = {
-  'title': 'mIRKfORCE Library',
+  'title': 'gaewiki demo',
   'interwiki': {
     'google': 'http://www.google.ru/search?sourceid=chrome&ie=UTF-8&q=%s',
     'wp': 'http://en.wikipedia.org/wiki/Special:Search?search=%s',
     'wpru': 'http://ru.wikipedia.org/wiki/Special:Search?search=%s',
   },
   'welcome': 'welcome',
+  'open': True,
 }
 
 # Regular expression for a wiki word.  Wiki words are all letters
@@ -105,7 +105,7 @@ class BaseRequestHandler(webapp.RequestHandler):
   def checkUserAllowed(self, admin=False):
     if users.is_current_user_admin():
       return True
-    elif _WIKI_OPEN:
+    elif _SETTINGS['open']:
       return True
     current_user = users.get_current_user()
     if not current_user:
