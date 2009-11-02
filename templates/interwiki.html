@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Interwiki{% endblock %}
+{% block content %}
+<h1>Interwiki syntax</h1>
+
+<table class="c">
+<thead>
+<tr>
+<th>Key</th>
+<th>Server</th>
+<th>Example</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+{% for iw in iwlist %}
+<tr>
+<td>
+{{ iw.key }}
+</td>
+<td>
+{{ iw.host }}
+</td>
+<td>
+<code>[[{{ iw.key }}:hello, world]]</code>
+</td>
+<td>
+<a class="iw iw-{{ iw.key }}" href="{{ iw.sample }}" target="_blank">hello, world</a>
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+<p>You'll have to edit <code>main.py</code> to configure this.</p>
+
+{% endblock %}

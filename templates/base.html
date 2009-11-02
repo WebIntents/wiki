@@ -1,0 +1,59 @@
+<html>
+    <head>
+      <head http-equiv="content-type" content="text/html; charset=utf-8"/>
+      <link rel="stylesheet" type="text/css" href="/static/style.css"/>
+      <link rel="shortcut icon" href="/static/favicon.ico" /> 
+      <link rel="alternate" type="application/rss+xml" title="New Pages" href="/pages.rss" /> 
+      <title>{% block title %}{% endblock %}</title>
+    </head>
+    <body>
+    	{% block header %}
+      <div id="header">
+        <div class="top">
+          <div class="login">
+            {% if user %}
+              <div class="login"><strong>{{ user.nickname }}</strong>
+              | <a href="/w/index">Index</a>
+              | <a href="/w/changes">Changes</a>
+              {% if is_admin %}
+                | <a href="/users">Users</a>
+              {% endif %}
+                | <a href="{{log_in_out_url}}">Sign out</a></div>
+            {% else %}
+              <div align="right"><a href="{{log_in_out_url}}">Log in</a></div>
+            {% endif %}
+          </div>
+          <div class="title">
+            <a href="/"><span>{{ settings.title }}</span></a>
+          </div>
+        </div>
+        <div class="bottom">
+          <div class="buttons">
+            {% if version_date %}
+              <div class="meta">{{ version_date|date:"d.m.y, H:i" }} by {{ author }}</div>
+            {% endif %}
+            <form method="get">
+              <!--
+              <input type="submit" name="new" value="New Page"/>
+              -->
+              {% if not editing %}
+                <input type="submit" name="edit" value="Edit Page"/>
+                {% if version %}
+                  <input type="hidden" name="r" value="{{ version }}"/>
+                {% endif %}
+              {% endif %}
+              {% if version_date %}
+                <a href="?history=1">History</a>
+              {% endif %}
+            </form>
+          </div>
+        </div>
+      </div>
+    	{% endblock %}
+    <div id="page">
+      {% block content %}{% endblock %}
+    </div>
+		{% block footer %}
+		{% endblock %}
+    </body>
+</html>

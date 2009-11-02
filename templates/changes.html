@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Recent changes{% endblock %}
+{% block content %}
+<h1>Recent changes <a class="int" href="/w/changes.rss"><img src="/static/rss.png" alt="rss" width="16" height="16"/></a></h1>
+
+<table class="c">
+<thead>
+<tr>
+<th>Page</th>
+<th>Edited on</th>
+<th>Editor</th>
+</tr>
+</thead>
+<tbody>
+{% for rev in changes %}
+<tr>
+<td>
+<a class="int" href="/{{ rev.wiki_page.title }}?r={{ rev.version_number }}">{{ rev.wiki_page.title }}</a>
+</td>
+<td>
+{{ rev.created|date:"d.m.y, H:i" }}
+</td>
+<td>
+{{ rev.author.wiki_user }}
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+{% endblock %}

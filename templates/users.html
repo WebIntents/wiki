@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<h1>User Profiles</h1>
+
+<form method="post">
+<table>
+<tbody>
+{% for user in users %}
+<tr>
+<td>
+{{ user.wiki_user }}
+</td>
+<td>
+&nbsp;
+</td>
+</tr>
+{% endfor %}
+</tbody>
+<tfoot>
+<tr>
+<td>
+<input type="text" name="email"/>
+</td>
+<td>
+<input type="submit" value="Add"/>
+</td>
+</tr>
+</tfoot>
+</table>
+</form>
+{% endblock %}

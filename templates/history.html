@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<h1>History for "{{ page_title }}"</h1>
+
+{% for revision in revisions %}
+    <ul>
+      <li><a class="int" href="/{{ page_name }}?r={{ revision.version_number }}">Revision {{ revision.version_number }}</a>&nbsp;&nbsp;&nbsp;&nbsp;{{ revision.created|date:"d.m.y, H:i"}}</li>
+    </ul>
+{% endfor %}
+
+{% endblock %}
