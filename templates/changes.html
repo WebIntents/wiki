@@ -15,7 +15,7 @@
 {% for rev in changes %}
 <tr>
 <td>
-<a class="int" href="/{{ rev.wiki_page.title }}?r={{ rev.version_number }}">{{ rev.wiki_page.title }}</a>
+<a class="int" href="/{{ rev.wiki_page.title }}?r={{ rev.version_number }}">{{ rev.wiki_page.title }}</a>#{{ rev.version_number }}
 </td>
 <td>
 {{ rev.created|date:"d.m.y, H:i" }}
