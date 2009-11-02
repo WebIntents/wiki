@@ -2,8 +2,8 @@
 {% block title %}Editing "{{ page_title }}"{% endblock %}
 {% block content %}
     <h1>Editing "{{ page_title }}"</h1>
-    <form action="/{{ page_name }}" method="POST">
-    	<textarea rows="20" cols="80" name="body" id="body">{% if current_version.revision_body %}{{ current_version.revision_body }}
+    <form action="/{{ page_name }}" method="POST" class="markdown">
+    	<textarea rows="20" cols="80" name="body" id="editor">{% if current_version.revision_body %}{{ current_version.revision_body }}
 {% else %}# {{ page_title }}
 
 **{{ page_title }}** is...{% endif %}</textarea>

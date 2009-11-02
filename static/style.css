@@ -7,6 +7,7 @@ body {
 
 a {
   color: #00c;
+  outline: none;
 }
 #page a {
   text-decoration: none;
@@ -73,8 +74,12 @@ a {
 #page textarea {
   width: 100%;
   max-width: 100%;
+  margin: 0 0 1em;
+  border: solid 1px #ccc;
+  outline: none;
+  font-family: sans-serif;
 }
-#page a {
+#pb a {
   background: url(/static/external.png) no-repeat 100% 50%;
   color: #36b;
   padding-right: 13px;
@@ -111,4 +116,27 @@ table.c td, table.c th {
 }
 table.c thead tr {
   background-color: #eee;
+}
+
+#toolbar {
+  background-color: #eee;
+  border: solid 1px #ccc;
+  border-bottom: none;
+  font-size: 1px;
+  line-height: 1px;
+}
+#toolbar a.button {
+  background: transparent;
+  padding: 2px;
+  cursor: pointer;
+}
+#toolbar img {
+  width: 20px;
+  height: 20px;
+  margin: 2px;
+  border: solid 1px transparent;
+}
+#toolbar a.button:hover img {
+  background-color: #B6BDD2;
+  border: solid 1px #0A246A;
 }
