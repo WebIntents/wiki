@@ -4,12 +4,7 @@
       <link rel="stylesheet" type="text/css" href="/static/style.css"/>
       <link rel="shortcut icon" href="/static/favicon.ico" /> 
       <link rel="alternate" type="application/rss+xml" title="New Pages" href="/pages.rss" /> 
-      <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
-      <script type="text/javascript" src="/static/scripts/markitup/jquery.markitup.pack.js"></script>
-      <script type="text/javascript" src="/static/scripts/markitup/sets/markdown/set.js"></script>
-      <script type="text/javascript" src="/static/editor.js"></script>
-      <link rel="stylesheet" type="text/css" href="/static/scripts/markitup/skins/markitup/style.css" />
-      <link rel="stylesheet" type="text/css" href="/static/scripts/markitup/sets/markdown/style.css" />
+      {% block heads %}{% endblock %}
       <title>{% block title %}{% endblock %}</title>
     </head>
     <body>
