@@ -52,7 +52,8 @@ logger.addHandler(console_hndlr)
 
 def message(level, text):
     ''' A wrapper method for logging debug messages. '''
-    logger.log(level, text)
+    # logger.log(level, text)
+    pass
 
 
 # --------------- CONSTANTS YOU MIGHT WANT TO MODIFY -----------------
