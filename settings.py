@@ -2,6 +2,7 @@
 # vim: set ts=2 sts=2 sw=2 et:
 
 import logging
+from google.appengine.api import memcache
 from google.appengine.ext import db
 
 class WikiSettings(db.Model):
@@ -17,12 +18,15 @@ class WikiSettings(db.Model):
 
 class Settings(object):
   def __init__(self):
-    self.data = self.read()
-    if not self.data.key():
-      defaults = self.defaults()
-      for k in defaults:
-        if not getattr(self.data, k):
-          setattr(self.data, k, defaults[k])
+    self.data = memcache.get('#settings#')
+    if not self.data:
+      self.data = self.read()
+      if not self.data.key():
+        defaults = self.defaults()
+        for k in defaults:
+          if not getattr(self.data, k):
+            setattr(self.data, k, defaults[k])
+      memcache.set('#settings#', self.data)
 
   def defaults(self):
     return {
@@ -60,6 +64,7 @@ class Settings(object):
     self.save()
 
   def save(self):
+    memcache.set('#settings#', self.data)
     self.data.put()
 
   def get(self, k):
