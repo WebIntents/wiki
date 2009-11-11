@@ -689,6 +689,35 @@ class SettingsHandler(BaseRequestHandler):
     self.response.set_status(303)
     self.redirect('/w/settings')
 
+class RobotsHandler(BaseRequestHandler):
+  def get(self):
+    content = "Sitemap: http://%s/sitemap.xml\n" % (self.request.environ['HTTP_HOST'])
+
+    content += "User-agent: *\n"
+    content += "Disallow: /static/\n"
+    content += "Disallow: /w/\n"
+
+    self.response.headers['Content-Type'] = 'text/plain'
+    self.response.out.write(content)
+
+class SitemapHandler(BaseRequestHandler):
+  def get(self):
+    content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+    content += "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+
+    host = self.request.environ['HTTP_HOST']
+
+    for page in WikiContent.all().fetch(1000):
+      line = "<url><loc>http://%s/%s</loc>" % (host, page.title)
+      rev = WikiRevision.gql('WHERE wiki_page = :1 ORDER BY version_number DESC', page).get()
+      if rev and rev.created:
+        line += "<lastmod>%s</lastmod>" % (rev.created.isoformat())
+      line += "</url>\n"
+      content += line
+    content += "</urlset>\n"
+
+    self.response.headers['Content-Type'] = 'text/xml'
+    self.response.out.write(content)
 
 _WIKI_URLS = [('/', MainHandler),
               ('/w/changes', ChangesHandler),
@@ -698,6 +727,8 @@ _WIKI_URLS = [('/', MainHandler),
               ('/w/interwiki', InterwikiHandler),
               ('/w/users', UsersHandler),
               ('/w/settings', SettingsHandler),
+              ('/robots.txt', RobotsHandler),
+              ('/sitemap.xml', SitemapHandler),
               ('/(.+)', ViewHandler)
               ]
 
