@@ -670,7 +670,7 @@ class SitemapHandler(BaseRequestHandler):
       host = self.request.environ['HTTP_HOST']
 
       for page in WikiContent.all().fetch(1000):
-        line = "<url><loc>http://%s/%s</loc>" % (host, page.title)
+        line = "<url><loc>http://%s/%s</loc>" % (host, urllib.quote(page.title.encode('utf8')))
         rev = WikiRevision.gql('WHERE wiki_page = :1 ORDER BY version_number DESC', page).get()
         if rev and rev.created:
           line += "<lastmod>%s</lastmod>" % (rev.created.isoformat())
