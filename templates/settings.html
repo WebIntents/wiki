@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Settings — {{ settings.title }}{% endblock %}
+{% block content %}
+  <div id="pb" class="settings">
+    <h1>Wiki Settings</h1>
+    <form action="/w/settings" method="post">
+      <table class="forms">
+        <tbody>
+          <tr>
+            <th><label for="title">Wiki title:</label></th>
+            <td><input class="text" type="text" name="title" id="title" value="{{ settings.title }}"/></td>
+          </tr>
+          <tr>
+            <th><label for="start_page">Start page:</label></th>
+            <td><input class="text" type="text" name="start_page" id="start_page" value="{{ settings.start_page }}"/></td>
+          </tr>
+          <tr>
+            <th><label for="admin_email">Admin email:</label></th>
+            <td><input class="text" type="text" name="admin_email" id="admin_email" value="{{ settings.admin_email }}"/></td>
+          </tr>
+          <tr>
+            <th><label for="pread">Publicly readable:</label></th>
+            <td><input type="checkbox" name="pread" id="pread" value="True"{% if settings.pread %} checked="checked"{% endif %}/></td>
+          </tr>
+          <tr>
+            <th><label for="pwrite">Publicly editable:</label></th>
+            <td><input type="checkbox" name="pwrite" id="pwrite" value="True"{% if settings.pwrite %} checked="checked"{% endif %}/></td>
+          </tr>
+          <tr>
+            <th><label for="footer_setting">Page footer:</label></th>
+            <td><textarea class="text" name="footer" id="footer_setting" rows="5">{{ settings.footer }}</textarea></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="okbtn">
+            <td/>
+            <td>
+              <input type="submit" value="Save"/>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </form>
+  </div>
+{% endblock %}
