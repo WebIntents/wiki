@@ -196,7 +196,7 @@ class BaseRequestHandler(webapp.RequestHandler):
     self.response.headers['Content-Type'] = 'text/xml'
     return self.generate(template_name, template_values)
 
-  def generate(self, template_name, template_values={}):
+  def generate(self, template_name, template_values={}, ret=False):
     """Generate takes renders and HTML template along with values
        passed to that template
 
@@ -226,8 +226,12 @@ class BaseRequestHandler(webapp.RequestHandler):
     directory = os.path.dirname(__file__)
     path = os.path.join(directory, 'templates', template_name)
 
+    result = template.render(path, values, debug=_DEBUG)
+    if ret:
+      return result
+
     # Respond to the request by rendering the template
-    self.response.out.write(template.render(path, values, debug=_DEBUG))
+    self.response.out.write(result)
 
 class MainHandler(BaseRequestHandler):
   """The MainHandler extends the base request handler, and handles all
@@ -359,6 +363,7 @@ class ViewHandler(BaseRequestHandler):
                current_user.nickname(), version_number, version.created]
     memcache.set(page_title, content, 600)
     memcache.delete('/sitemap.xml')
+    memcache.delete('/w/changes')
 
     # After the entry has been saved, direct the user back to view the page
     self.redirect('/' + page_title)
@@ -615,9 +620,16 @@ class ChangesHandler(BaseRequestHandler):
   def get(self):
     if not self.canReadPages():
       return self.sendForbidden()
-    self.generate('changes.html', template_values={
-      'self': self.request.url,
-      'changes': [revision for revision in WikiRevision.gql('ORDER BY created DESC').fetch(1000)]})
+    content = memcache.get('/w/changes')
+    if not content:
+      template_values={
+        'self': self.request.url,
+        'changes': [revision for revision in WikiRevision.gql('ORDER BY created DESC').fetch(1000)],
+      }
+      content = self.generate('changes.html', template_values, ret=True)
+      memcache.set('/w/changes', content)
+
+    self.response.out.write(content)
 
 class ChangesRssHandler(BaseRequestHandler):
   def get(self):
