@@ -137,7 +137,6 @@ class BaseRequestHandler(webapp.RequestHandler):
   def get_page_name(self, page_title):
     if type(page_title) == type(str()):
       page_title = urllib.unquote(page_title).decode('utf8')
-      logging.info('%s decoded' % page_title)
     return page_title.lower().replace(' ', '_')
 
   def get_current_user(self, back=None):
@@ -145,8 +144,7 @@ class BaseRequestHandler(webapp.RequestHandler):
       back = self.request.url
     current_user = users.get_current_user()
     if not current_user:
-      logging.info(self.redirect(users.create_login_url(back)))
-    logging.info(current_user)
+      self.redirect(users.create_login_url(back))
     self.error(403)
     return current_user
 
@@ -175,8 +173,6 @@ class BaseRequestHandler(webapp.RequestHandler):
       parts = page_name.split(':', 2)
       if page_name == page_title:
         page_title = parts[1]
-      logging.info(page_title)
-      logging.info(parts)
       if parts[0] in _SETTINGS['interwiki']:
         return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], _SETTINGS['interwiki'][parts[0]].replace('%s', urllib.quote(parts[1])), page_title)
 
@@ -322,7 +318,6 @@ class ViewHandler(BaseRequestHandler):
   def post(self, page_title):
     wiki_user = self.get_wiki_user(True, '/' + page_title + '?edit=1')
     current_user = wiki_user.wiki_user
-    logging.info(current_user)
 
     # get the user entered content in the form
     body = self.request.get('body')
