@@ -359,6 +359,7 @@ class ViewHandler(BaseRequestHandler):
     content = [markdown.markdown(body), current_user.email(), 
                current_user.nickname(), version_number, version.created]
     memcache.set(page_title, content, 600)
+    memcache.delete('/sitemap.xml')
 
     # After the entry has been saved, direct the user back to view the page
     self.redirect('/' + page_title)
@@ -702,19 +703,23 @@ class RobotsHandler(BaseRequestHandler):
 
 class SitemapHandler(BaseRequestHandler):
   def get(self):
-    content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
-    content += "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+    content = memcache.get('/sitemap.xml')
+    if not content:
+      content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+      content += "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
 
-    host = self.request.environ['HTTP_HOST']
+      host = self.request.environ['HTTP_HOST']
 
-    for page in WikiContent.all().fetch(1000):
-      line = "<url><loc>http://%s/%s</loc>" % (host, page.title)
-      rev = WikiRevision.gql('WHERE wiki_page = :1 ORDER BY version_number DESC', page).get()
-      if rev and rev.created:
-        line += "<lastmod>%s</lastmod>" % (rev.created.isoformat())
-      line += "</url>\n"
-      content += line
-    content += "</urlset>\n"
+      for page in WikiContent.all().fetch(1000):
+        line = "<url><loc>http://%s/%s</loc>" % (host, page.title)
+        rev = WikiRevision.gql('WHERE wiki_page = :1 ORDER BY version_number DESC', page).get()
+        if rev and rev.created:
+          line += "<lastmod>%s</lastmod>" % (rev.created.isoformat())
+        line += "</url>\n"
+        content += line
+      content += "</urlset>\n"
+
+      memcache.set('/sitemap.xml', content)
 
     self.response.headers['Content-Type'] = 'text/xml'
     self.response.out.write(content)
