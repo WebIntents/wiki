@@ -11,8 +11,7 @@
 {% block content %}
     <h1>Editing "{{ page_title }}"</h1>
     <form action="/{{ page_name }}" method="POST" class="markdown">
-    	<textarea rows="20" cols="80" name="body" id="editor">{% if current_version.revision_body %}{{ current_version.revision_body }}
-{% else %}# {{ page_title }}
+    	<textarea rows="20" cols="80" name="body" id="editor">{% if current_version.revision_body %}{{ current_version.revision_body }}{% else %}# {{ page_title }}
 
 **{{ page_title }}** is...{% endif %}</textarea>
 <p class="hint">You can use HTML and <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown</a> for formatting, <a class="int" href="/w/interwiki" target="_blank">interwikis</a> for linking.</p>

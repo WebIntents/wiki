@@ -25,7 +25,6 @@ BaseRequestHandler - Base class to handle requests
 MainHandler - Handles request to TLD
 ViewHandler - Handles request to view any wiki entry
 EditHandler - Handles request to edit any wiki entry
-SaveHandler - Handles request to save any wiki entry
 UserProfileHandler - Handles request to view any user profile
 EditUserProfileHandler - Handles request to edit current user profile
 GetUserPhotoHandler - Serves a users image
@@ -327,7 +326,7 @@ class ViewHandler(BaseRequestHandler):
     current_user = wiki_user.wiki_user
 
     # get the user entered content in the form
-    body = self.request.get('body')
+    body = self.request.get('body').strip()
 
     # Find the entry, if it exists
     entry = self.getWikiContent(page_title)
@@ -430,46 +429,6 @@ class EditHandler(BaseRequestHandler):
                   template_values={'page_name': page_title,
                                    'page_title': urllib.unquote(page_title).decode('utf-8'),
                                    'current_version': current_version})
-
-
-class SaveHandler(BaseRequestHandler):
-  """From the edit page for a wiki article, we post to the SaveHandler
-     This creates the the entry and revision for the datastore.  Also,
-     we take the data posted, and set it in memcache.
-  """
-
-  def post(self, page_title):
-    wiki_user = self.get_wiki_user(True, users.create_login_url('/edit/' + page_title))
-
-    # get the user entered content in the form
-    body = self.request.get('body')
-
-    # Find the entry, if it exists
-    entry = self.getWikiContent(page_title)
-
-    # Generate the version number based on the entries previous existence
-    if entry:
-      latest_version = WikiRevision.gql('WHERE wiki_page = :content'
-                                        ' ORDER BY version_number DESC', content=entry).get()
-      version_number = latest_version.version_number + 1
-    else:
-      version_number = 1
-      entry = WikiContent(title=self.get_page_name(page_title))
-      entry.put()
-
-    # Create a version for this entry
-    version = WikiRevision(version_number=version_number,
-                           revision_body=body, author=wiki_user,
-                           wiki_page=entry)
-    version.put()
-
-    # above, memcache sets the following:
-    # return [wiki_body, author_email, author_nickname, version, version_date]
-    content = [markdown.markdown(body), current_user.email(), 
-               current_user.nickname(), version_number, version.created]
-    memcache.set(page_title, content, 600)
-    # After the entry has been saved, direct the user back to view the page
-    self.redirect('/' + page_title)
 
 
 class UserProfileHandler(BaseRequestHandler):
