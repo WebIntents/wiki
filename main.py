@@ -51,6 +51,7 @@ from google.appengine.api import memcache
 from google.appengine.api import users
 from google.appengine.api import urlfetch
 from google.appengine.ext import webapp
+from google.appengine.api import xmpp
 from google.appengine.ext.webapp import template
 
 # Wiki Imports
@@ -124,6 +125,12 @@ class BaseRequestHandler(webapp.RequestHandler):
       'title': 'Forbidden',
       'message': message,
     })
+
+  def notifyUser(self, address, message):
+    sent = False
+    if xmpp.get_presence(address):
+      status_code = xmpp.send_message(address, message)
+      sent = (status_code != xmpp.NO_ERROR)
 
   def getWikiContent(self, page_title):
     return WikiContent.gql('WHERE title = :1', self.get_page_name(page_title)).get()
@@ -330,6 +337,10 @@ class ViewHandler(BaseRequestHandler):
       latest_version = WikiRevision.gql('WHERE wiki_page = :content ORDER BY version_number DESC', content=entry).get()
       if latest_version:
         version_number = latest_version.version_number + 1
+        if latest_version.author:
+          to = latest_version.author.wiki_user.email()
+          if to != current_user.email():
+            self.notifyUser(to, 'Your page "%s" was edited by %s.\nhttp://%s/%s' % (self.get_page_name(page_title), current_user.email(), self.request.environ['HTTP_HOST'], page_title))
       else:
         version_number = 1
     else:
