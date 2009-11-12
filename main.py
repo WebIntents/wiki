@@ -306,6 +306,7 @@ class ViewHandler(BaseRequestHandler):
       version_date = requested_version.created
       # Replace all wiki words with links to those wiki pages
       wiki_body = self.wikify(body)
+      pread = requested_version.pread
     else:
       # These things do not exist
       wiki_body = ''
@@ -313,15 +314,18 @@ class ViewHandler(BaseRequestHandler):
       author_nickname = ''
       version = ''
       version_date = ''
+      pread = False
 
-    return [wiki_body, author_email, author_nickname, version, version_date]
+    return [wiki_body, author_email, author_nickname, version, version_date, pread]
 
   def get_content(self, page_title, revision_number):
     """Checks memcache for the page.  If the page exists in memcache, it
        returns the information.  If not, it calls get_page_content, gets the
        page content from the datastore and sets the memcache with that info
     """
-    page_content = self.get_page_content(page_title, revision_number)
+    page_content = memcache.get(page_title)
+    if not page_content:
+      page_content = self.get_page_content(page_title, revision_number)
 
     return page_content
 
@@ -354,14 +358,15 @@ class ViewHandler(BaseRequestHandler):
     # Create a version for this entry
     version = WikiRevision(version_number=version_number,
                            revision_body=body, author=wiki_user,
-                           wiki_page=entry)
+                           wiki_page=entry, pread=(self.request.get('pread') == 'True'))
+    logging.info(int(version.pread))
     version.put()
 
     # above, memcache sets the following:
     # return [wiki_body, author_email, author_nickname, version, version_date]
     content = [markdown.markdown(body), current_user.email(), 
-               current_user.nickname(), version_number, version.created]
-    memcache.set(page_title, content, 600)
+               current_user.nickname(), version_number, version.created, version.pread]
+    memcache.delete(page_title)
     memcache.delete('/sitemap.xml')
     memcache.delete('/w/changes')
 
@@ -369,8 +374,6 @@ class ViewHandler(BaseRequestHandler):
     self.redirect('/' + page_title)
 
   def get(self, page_name):
-    if not self.canReadPages():
-      return self.sendForbidden()
     if self.request.get("edit"):
       return self.get_edit(page_name)
     elif self.request.get("history"):
@@ -382,18 +385,32 @@ class ViewHandler(BaseRequestHandler):
     revision_number = None
     if self.request.get('r'):
       revision_number = int(self.request.get('r'))
-    wiki_body, author_email, author_nickname, version, version_date = self.get_content(page_name, revision_number)
 
-    self.generate('view.html', template_values={
-      'page_name': page_name,
-      'page_title': self.get_page_name(page_name),
-      'body': wiki_body,
-      'author': author_nickname,
-      'author_email': author_email,
-      'version': version,
-      'version_date': version_date})
+    mck = '/' + page_name
+    if revision_number:
+      mck = mck + '?r=' + revision_number
+
+    content = memcache.get(mck)
+    if not content:
+      wiki_body, author_email, author_nickname, version, version_date, pread = self.get_content(page_name, revision_number)
+
+      if not pread and not self.canReadPages():
+        return self.sendForbidden()
+
+      content = self.generate('view.html', template_values={
+        'page_name': page_name,
+        'page_title': self.get_page_name(page_name),
+        'body': wiki_body,
+        'author': author_nickname,
+        'author_email': author_email,
+        'version': version,
+        'version_date': version_date}, ret=True)
+
+    self.response.out.write(content)
 
   def get_edit(self, page_name):
+    if not self.canReadPages():
+      return self.sendForbidden()
     if not self.canEditPages():
       self.sendForbidden()
     self.generate('edit.html', template_values={
@@ -675,19 +692,22 @@ class RobotsHandler(BaseRequestHandler):
 class SitemapHandler(BaseRequestHandler):
   def get(self):
     content = memcache.get('/sitemap.xml')
-    if not content:
+    if True or not content:
       content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
       content += "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
 
+      settings = Settings()
       host = self.request.environ['HTTP_HOST']
 
       for page in WikiContent.all().fetch(1000):
-        line = "<url><loc>http://%s/%s</loc>" % (host, urllib.quote(page.title.encode('utf8')))
         rev = WikiRevision.gql('WHERE wiki_page = :1 ORDER BY version_number DESC', page).get()
-        if rev and rev.created:
-          line += "<lastmod>%s</lastmod>" % (rev.created.isoformat())
-        line += "</url>\n"
-        content += line
+        if rev:
+          if settings.data.pread or rev.pread:
+            line = "<url><loc>http://%s/%s</loc>" % (host, urllib.quote(page.title.encode('utf8')))
+            if rev and rev.created:
+              line += "<lastmod>%s</lastmod>" % (rev.created.isoformat())
+            line += "</url>\n"
+            content += line
       content += "</urlset>\n"
 
       memcache.set('/sitemap.xml', content)

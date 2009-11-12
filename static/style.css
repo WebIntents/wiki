@@ -135,6 +135,9 @@ table.c td, table.c th {
 table.c thead tr {
   background-color: #eee;
 }
+table.c a.public {
+  font-weight: bold;
+}
 
 #toolbar {
   background-color: #eee;

@@ -37,3 +37,4 @@ class WikiRevision(db.Model):
   author = db.ReferenceProperty(WikiUser)
   created = db.DateTimeProperty(auto_now_add=True)
   version_number = db.IntegerProperty()
+  pread = db.BooleanProperty()

@@ -14,6 +14,9 @@
     	<textarea rows="20" cols="80" name="body" id="editor">{% if current_version.revision_body %}{{ current_version.revision_body }}{% else %}# {{ page_title }}
 
 **{{ page_title }}** is...{% endif %}</textarea>
+{% if not settings.pread %}
+<p><label><input type="checkbox" value="True"{% if current_version.pread %} checked="checked"{% endif %} name="pread"/>Let the public read this page</label></p>
+{% endif %}
 <p class="hint">You can use HTML and <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown</a> for formatting, <a class="int" href="/w/interwiki" target="_blank">interwikis</a> for linking.</p>
     	<input type="submit" value="Save Changes"/> or <a class="int" href="{{ page_name }}">cancel</a>
     </form>
