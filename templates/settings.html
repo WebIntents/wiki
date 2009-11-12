@@ -27,6 +27,10 @@
             <td><input type="checkbox" name="pwrite" id="pwrite" value="True"{% if settings.pwrite %} checked="checked"{% endif %}/></td>
           </tr>
           <tr>
+            <th><label for="owner_meta">Site verification code:</label></th>
+            <td><input class="text" type="text" name="owner_meta" id="owner_meta"{% if settings.owner_meta %} value="{{ settings.owner_meta }}"{% endif %}/></td>
+          </tr>
+          <tr>
             <th><label for="footer_setting">Page footer:</label></th>
             <td><textarea class="text" name="footer" id="footer_setting" rows="5">{{ settings.footer }}</textarea></td>
           </tr>

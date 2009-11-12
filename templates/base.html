@@ -6,6 +6,9 @@
       <link rel="alternate" type="application/rss+xml" title="New Pages" href="/w/index.rss" /> 
       {% block heads %}{% endblock %}
       <title>{% block title %}{% endblock %}</title>
+      {% if settings.owner_meta %}
+        <meta name="google-site-verification" content="{{ settings.owner_meta }}"/>
+      {% endif %}
     </head>
     <body>
     	{% block header %}

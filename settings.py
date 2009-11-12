@@ -13,6 +13,9 @@ class WikiSettings(db.Model):
   pread = db.BooleanProperty(True)
   # publicly writable
   pwrite = db.BooleanProperty(False)
+  # Google Site Ownership Verification,
+  # http://www.google.com/support/webmasters/bin/answer.py?answer=35659
+  owner_meta = db.StringProperty()
   # page footer
   footer = db.StringProperty()
 
@@ -36,6 +39,7 @@ class Settings(object):
       'footer': None,
       'pread': True,
       'pwrite': False,
+      'owner_meta': None,
     }
 
   def read(self):
