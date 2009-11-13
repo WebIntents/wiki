@@ -209,6 +209,8 @@ class BaseRequestHandler(webapp.RequestHandler):
     # We check if there is a current user and generate a login or logout URL
     user = users.get_current_user()
 
+    logging.info('generating ' + template_name)
+
     if user:
       log_in_out_url = users.create_logout_url(self.getStartPage())
     else:
@@ -405,6 +407,7 @@ class ViewHandler(BaseRequestHandler):
         'author_email': author_email,
         'version': version,
         'version_date': version_date}, ret=True)
+      memcache.set(mck, content, time=600)
 
     self.response.out.write(content)
 
