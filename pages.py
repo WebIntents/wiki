@@ -38,8 +38,10 @@ def put(page):
 def unquote(name):
   return urllib.unquote(name).decode('utf8').replace('_', ' ')
 
-def quote(name):
-  return urllib.quote(name.replace(' ', '_').encode('utf8'))
+def quote(name, underscore=True):
+  if underscore:
+    name = name.replace(' ', '_')
+  return urllib.quote(name.encode('utf8'))
 
 def wikify(text):
   """
@@ -66,12 +68,11 @@ def wikify_one(pat):
       return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], _SETTINGS['interwiki'][parts[0]].replace('%s', urllib.quote(parts[1])), page_title)
   """
 
-  page_name = page_name.lower().replace(' ', '_')
   page = WikiContent.gql('WHERE title = :1', page_name).get()
   if page:
-    return '<a class="int" href="%s">%s</a>' % (page_name, page_title)
+    return '<a class="int" href="%s">%s</a>' % (quote(page_name), page_title)
   else:
-    return '<a class="int missing" href="/w/edit?page=%s">%s</a>' % (quote(page_name), page_title)
+    return '<a class="int missing" href="/w/edit?page=%s">%s</a>' % (quote(page_name, False), page_title)
 
 def get_title(text):
   r = re.search("<h1>(.*)</h1>", text)
