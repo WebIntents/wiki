@@ -58,7 +58,7 @@ from markdown import markdown
 from wiki_model import WikiContent
 from wiki_model import WikiRevision
 from wiki_model import WikiUser
-from settings import Settings
+import acl, settings
 
 # Set the debug level
 _DEBUG = True
@@ -82,54 +82,39 @@ class BaseRequestHandler(webapp.RequestHandler):
      in response to a web request
   """
 
+  def __init__(self):
+    self.settings = settings.Settings()
+    self.acl = acl.acl(self.settings)
+
+  def handle_exception(self, e, debug_mode):
+    if not issubclass(e.__class__, acl.HTTPException):
+      return webapp.RequestHandler.handle_exception(self, e, debug_mode)
+
+    if e.code == 401:
+      self.redirect(users.create_login_url(self.request.url))
+    else:
+      self.error(e.code)
+      self.generate('error.html', template_values={
+        'settings': self.settings.dict(),
+        'code': e.code,
+        'title': e.title,
+        'message': e.message,
+      })
+
   def getStartPage(self):
-    return '/' + Settings().get('start_page')
-
-  def canReadPages(self):
-    if self.canEditSettings():
-      return True
-    if Settings().get('pread'):
-      return True
-    cu = users.get_current_user()
-    if not cu:
-      return False
-    wu = WikiUser.gql('WHERE wiki_user = :1', cu).get()
-    if not wu:
-      return False
-    return True
-
-  def canEditPages(self):
-    if self.canEditSettings():
-      return True
-    if Settings().get('pwrite'):
-      return True
-    cu = users.get_current_user()
-    if not cu:
-      return False
-    wu = WikiUser.gql('WHERE wiki_user = :1', cu).get()
-    if not wu:
-      return False
-    return True
-
-  def canEditSettings(self):
-    return users.is_current_user_admin()
-
-  def sendForbidden(self, message=None):
-    if message is None:
-      message = 'You have no access to this page.'
-    self.error(403)
-    self.generate('error.html', template_values={
-      'settings': Settings().dict(),
-      'code': 403,
-      'title': 'Forbidden',
-      'message': message,
-    })
+    return '/' + self.settings.get('start_page')
 
   def notifyUser(self, address, message):
     sent = False
     if xmpp.get_presence(address):
       status_code = xmpp.send_message(address, message)
       sent = (status_code != xmpp.NO_ERROR)
+
+  def get_page_cache_key(self, page_name, revision_number=None):
+    key = '/' + page_name
+    if revision_number:
+      key += '?r=' + str(revision_number)
+    return key
 
   def getWikiContent(self, page_title):
     return WikiContent.gql('WHERE title = :1', self.get_page_name(page_title)).get()
@@ -150,8 +135,7 @@ class BaseRequestHandler(webapp.RequestHandler):
       back = self.request.url
     current_user = users.get_current_user()
     if not current_user:
-      self.redirect(users.create_login_url(back))
-    self.error(403)
+      raise acl.UnauthorizedException()
     return current_user
 
   def get_wiki_user(self, create=False, back=None):
@@ -209,16 +193,14 @@ class BaseRequestHandler(webapp.RequestHandler):
     # We check if there is a current user and generate a login or logout URL
     user = users.get_current_user()
 
-    logging.info('generating ' + template_name)
+    logging.debug('generating ' + template_name)
 
     if user:
       log_in_out_url = users.create_logout_url(self.getStartPage())
     else:
       log_in_out_url = users.create_login_url(self.request.path)
 
-    template_values['settings'] = Settings().dict()
-    template_values['canread'] = self.canReadPages()
-    template_values['canedit'] = self.canEditPages()
+    template_values['settings'] = self.settings.dict()
 
     # We'll display the user name if available and the URL on all pages
     values = {'user': user, 'log_in_out_url': log_in_out_url, 'editing': self.request.get('edit'), 'is_admin': users.is_current_user_admin() }
@@ -332,6 +314,9 @@ class ViewHandler(BaseRequestHandler):
     return page_content
 
   def post(self, page_title):
+    """
+    Updates a wiki page. Creates a new WikiRevision, if necessary, then flushes some cache.
+    """
     wiki_user = self.get_wiki_user(True, '/' + page_title + '?edit=1')
     current_user = wiki_user.wiki_user
 
@@ -361,14 +346,15 @@ class ViewHandler(BaseRequestHandler):
     version = WikiRevision(version_number=version_number,
                            revision_body=body, author=wiki_user,
                            wiki_page=entry, pread=(self.request.get('pread') == 'True'))
-    logging.info(int(version.pread))
     version.put()
 
     # above, memcache sets the following:
     # return [wiki_body, author_email, author_nickname, version, version_date]
     content = [markdown.markdown(body), current_user.email(), 
                current_user.nickname(), version_number, version.created, version.pread]
-    memcache.delete(page_title)
+
+    memcache.delete(self.get_page_cache_key(page_title))
+    logging.debug('deleted %s from cache' % page_title)
     memcache.delete('/sitemap.xml')
     memcache.delete('/w/changes')
 
@@ -388,16 +374,16 @@ class ViewHandler(BaseRequestHandler):
     if self.request.get('r'):
       revision_number = int(self.request.get('r'))
 
-    mck = '/' + page_name
-    if revision_number:
-      mck = mck + '?r=' + revision_number
-
+    mck = self.get_page_cache_key(page_name, revision_number)
     content = memcache.get(mck)
-    if not content:
+
+    if content:
+      logging.debug('found %s in cache' % mck)
+    else:
       wiki_body, author_email, author_nickname, version, version_date, pread = self.get_content(page_name, revision_number)
 
-      if not pread and not self.canReadPages():
-        return self.sendForbidden()
+      if not pread:
+        self.acl.check_read_pages()
 
       content = self.generate('view.html', template_values={
         'page_name': page_name,
@@ -407,15 +393,14 @@ class ViewHandler(BaseRequestHandler):
         'author_email': author_email,
         'version': version,
         'version_date': version_date}, ret=True)
+
+      logging.debug('saving %s in cache' % mck)
       memcache.set(mck, content, time=600)
 
     self.response.out.write(content)
 
   def get_edit(self, page_name):
-    if not self.canReadPages():
-      return self.sendForbidden()
-    if not self.canEditPages():
-      self.sendForbidden()
+    self.acl.check_edit_pages()
     self.generate('edit.html', template_values={
       'page_name': page_name,
       'page_title': self.get_page_name(page_name),
@@ -603,14 +588,12 @@ class SendAdminEmail(BaseRequestHandler):
 
 class UsersHandler(BaseRequestHandler):
   def get(self):
-    if not self.canEditSettings():
-      return self.sendForbidden()
+    self.acl.check_edit_settings()
     users = WikiUser.all().fetch(1000)
     self.generate('users.html', template_values = { 'users': users })
 
   def post(self):
-    if not self.canEditSettings():
-      return self.sendForbidden()
+    self.acl.check_edit_settings()
     email = self.request.get('email').strip()
     if email and not WikiUser.gql('WHERE wiki_user = :1', users.User(email)).get():
       user = WikiUser(wiki_user=users.User(email))
@@ -619,8 +602,7 @@ class UsersHandler(BaseRequestHandler):
 
 class PageRssHandler(BaseRequestHandler):
   def get(self):
-    if not self.canReadPages():
-      return self.sendForbidden()
+    self.acl.check_read_pages()
     pages = {}
     for revision in WikiRevision.gql('ORDER BY created DESC').fetch(1000):
       page = revision.wiki_page.title
@@ -632,14 +614,12 @@ class PageRssHandler(BaseRequestHandler):
 
 class IndexHandler(BaseRequestHandler):
   def get(self):
-    if not self.canReadPages():
-      return self.sendForbidden()
+    self.acl.check_read_pages()
     self.generate('index.html', template_values={'pages': [page.title for page in WikiContent.gql('ORDER BY title').fetch(1000)] })
 
 class ChangesHandler(BaseRequestHandler):
   def get(self):
-    if not self.canReadPages():
-      return self.sendForbidden()
+    self.acl.check_read_pages()
     content = memcache.get('/w/changes')
     if not content:
       template_values={
@@ -653,31 +633,27 @@ class ChangesHandler(BaseRequestHandler):
 
 class ChangesRssHandler(BaseRequestHandler):
   def get(self):
-    if not self.canReadPages():
-      return self.sendForbidden()
+    self.acl.check_read_pages()
     self.generateRss('changes-rss.html', template_values={
       'changes': [revision for revision in WikiRevision.gql('ORDER BY created DESC').fetch(1000)],
     })
 
 class InterwikiHandler(BaseRequestHandler):
   def get(self):
-    if not self.canEditPages():
-      return self.sendForbidden()
+    self.acl.check_edit_pages()
     items = _SETTINGS['interwiki'].keys()
     items.sort()
     self.generate('interwiki.html', template_values={'iwlist': [{'key': item, 'host': urlparse.urlparse(_SETTINGS['interwiki'][item])[1], 'sample': _SETTINGS['interwiki'][item].replace('%s', 'hello%2C%20world')} for item in items]})
 
 class SettingsHandler(BaseRequestHandler):
   def get(self):
-    if not self.canEditSettings():
-      return self.sendForbidden()
-
+    self.acl.check_edit_settings()
     self.generate('settings.html', template_values={
-      'settings': Settings().dict(),
+      'settings': self.settings.dict(),
     })
 
   def post(self):
-    Settings().importFormData(self.request)
+    self.settings.importFormData(self.request)
     self.response.set_status(303)
     self.redirect('/w/settings')
 
@@ -699,7 +675,7 @@ class SitemapHandler(BaseRequestHandler):
       content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
       content += "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
 
-      settings = Settings()
+      settings = self.settings
       host = self.request.environ['HTTP_HOST']
 
       for page in WikiContent.all().fetch(1000):
@@ -732,6 +708,9 @@ _WIKI_URLS = [('/', MainHandler),
               ]
 
 def main():
+  _DEBUG = ('Development/' in os.environ.get('SERVER_SOFTWARE'))
+  if _DEBUG:
+    logging.getLogger().setLevel(logging.DEBUG)
   application = webapp.WSGIApplication(_WIKI_URLS, debug=_DEBUG)
   wsgiref.handlers.CGIHandler().run(application)
 
