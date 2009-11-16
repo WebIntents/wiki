@@ -26,10 +26,12 @@ class WikiUser(db.Model):
   wiki_user_picture = db.BlobProperty()
   user_feed = db.StringProperty()
 
-
 class WikiContent(db.Model):
   title = db.StringProperty(required=True)
-
+  body = db.TextProperty(required=False)
+  author = db.ReferenceProperty(WikiUser)
+  updated = db.DateTimeProperty(auto_now_add=True)
+  pread = db.BooleanProperty()
 
 class WikiRevision(db.Model):
   wiki_page = db.ReferenceProperty(WikiContent)

@@ -24,7 +24,6 @@ Includes:
 BaseRequestHandler - Base class to handle requests
 MainHandler - Handles request to TLD
 ViewHandler - Handles request to view any wiki entry
-EditHandler - Handles request to edit any wiki entry
 UserProfileHandler - Handles request to view any user profile
 EditUserProfileHandler - Handles request to edit current user profile
 GetUserPhotoHandler - Serves a users image
@@ -34,9 +33,10 @@ SendAdminEmail - Handles request to send the admins email
 __author__ = 'appengine-support@google.com'
 
 # Python Imports
+import datetime
+import md5
 import os
 import sys
-import re
 import urllib
 import urlparse
 import wsgiref.handlers
@@ -49,8 +49,8 @@ from google.appengine.api import mail
 from google.appengine.api import memcache
 from google.appengine.api import users
 from google.appengine.api import urlfetch
-from google.appengine.ext import webapp
 from google.appengine.api import xmpp
+from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
 # Wiki Imports
@@ -58,7 +58,8 @@ from markdown import markdown
 from wiki_model import WikiContent
 from wiki_model import WikiRevision
 from wiki_model import WikiUser
-import acl, settings
+from base import BaseRequestHandler
+import pages
 
 # Set the debug level
 _DEBUG = True
@@ -70,163 +71,6 @@ _SETTINGS = {
     'wpru': 'http://ru.wikipedia.org/wiki/Special:Search?search=%s',
   },
 }
-
-# Regular expression for a wiki word.  Wiki words are all letters
-# As well as camel case.  For example: WikiWord
-_WIKI_WORD = re.compile('\[\[([^]|]+\|)?([^]]+)\]\]')
-
-class BaseRequestHandler(webapp.RequestHandler):
-  """Base request handler extends webapp.Request handler
-
-     It defines the generate method, which renders a Django template
-     in response to a web request
-  """
-
-  def __init__(self):
-    self.settings = settings.Settings()
-    self.acl = acl.acl(self.settings)
-
-  def handle_exception(self, e, debug_mode):
-    if not issubclass(e.__class__, acl.HTTPException):
-      return webapp.RequestHandler.handle_exception(self, e, debug_mode)
-
-    if e.code == 401:
-      self.redirect(users.create_login_url(self.request.url))
-    else:
-      self.error(e.code)
-      self.generate('error.html', template_values={
-        'settings': self.settings.dict(),
-        'code': e.code,
-        'title': e.title,
-        'message': e.message,
-      })
-
-  def getStartPage(self):
-    return '/' + self.settings.get('start_page')
-
-  def notifyUser(self, address, message):
-    sent = False
-    if xmpp.get_presence(address):
-      status_code = xmpp.send_message(address, message)
-      sent = (status_code != xmpp.NO_ERROR)
-
-  def get_page_cache_key(self, page_name, revision_number=None):
-    key = '/' + page_name
-    if revision_number:
-      key += '?r=' + str(revision_number)
-    return key
-
-  def getWikiContent(self, page_title):
-    return WikiContent.gql('WHERE title = :1', self.get_page_name(page_title)).get()
-
-  def getPageRevision(self, page_name, revision=None):
-    page = self.getWikiContent(page_name)
-    if revision:
-      return WikiRevision.gql('WHERE wiki_page = :1 AND version_number = :2', page, int(revision)).get()
-    return WikiRevision.gql('WHERE wiki_page = :1 ORDER BY version_number DESC', page).get()
-
-  def get_page_name(self, page_title):
-    if type(page_title) == type(str()):
-      page_title = urllib.unquote(page_title).decode('utf8')
-    return page_title.lower().replace(' ', '_')
-
-  def get_current_user(self, back=None):
-    if back is None:
-      back = self.request.url
-    current_user = users.get_current_user()
-    if not current_user:
-      raise acl.UnauthorizedException()
-    return current_user
-
-  def get_wiki_user(self, create=False, back=None):
-    current_user = self.get_current_user(back)
-    wiki_user = WikiUser.gql('WHERE wiki_user = :1', current_user).get()
-    if not wiki_user and create:
-      wiki_user = WikiUser(wiki_user=current_user)
-      wiki_user.put()
-    return wiki_user
-
-  def wikify(self, text):
-    text, count = _WIKI_WORD.subn(self.wikify_one, text)
-    text = markdown.markdown(text)
-    return text
-
-  def wikify_one(self, pat):
-    page_title = pat.group(2)
-    if pat.group(1):
-      page_name = pat.group(1).rstrip('|')
-    else:
-      page_name = page_title
-
-    # interwiki
-    if ':' in page_name:
-      parts = page_name.split(':', 2)
-      if page_name == page_title:
-        page_title = parts[1]
-      if parts[0] in _SETTINGS['interwiki']:
-        return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], _SETTINGS['interwiki'][parts[0]].replace('%s', urllib.quote(parts[1])), page_title)
-
-    page_name = page_name.lower().replace(' ', '_')
-    page = self.getWikiContent(page_name)
-    if page:
-      return '<a class="int" href="%s">%s</a>' % (page_name, page_title)
-    else:
-      return '<a class="int missing" href="%s?edit=1">%s</a>' % (page_name, page_title)
-
-  def generateRss(self, template_name, template_values={}):
-    template_values['self'] = self.request.url
-    url = urlparse.urlparse(self.request.url)
-    template_values['base'] = url[0] + '://' + url[1]
-    self.response.headers['Content-Type'] = 'text/xml'
-    return self.generate(template_name, template_values)
-
-  def generate(self, template_name, template_values={}, ret=False):
-    """Generate takes renders and HTML template along with values
-       passed to that template
-
-       Args:
-         template_name: A string that represents the name of the HTML template
-         template_values: A dictionary that associates objects with a string
-           assigned to that object to call in the HTML template.  The defualt
-           is an empty dictionary.
-    """
-    # We check if there is a current user and generate a login or logout URL
-    user = users.get_current_user()
-
-    logging.debug('generating ' + template_name)
-
-    if user:
-      log_in_out_url = users.create_logout_url(self.getStartPage())
-    else:
-      log_in_out_url = users.create_login_url(self.request.path)
-
-    template_values['settings'] = self.settings.dict()
-
-    # We'll display the user name if available and the URL on all pages
-    values = {'user': user, 'log_in_out_url': log_in_out_url, 'editing': self.request.get('edit'), 'is_admin': users.is_current_user_admin() }
-    values.update(template_values)
-
-    # Construct the path to the template
-    directory = os.path.dirname(__file__)
-    path = os.path.join(directory, 'templates', template_name)
-
-    result = template.render(path, values, debug=_DEBUG)
-    if ret:
-      return result
-
-    # Respond to the request by rendering the template
-    self.response.out.write(result)
-
-class MainHandler(BaseRequestHandler):
-  """The MainHandler extends the base request handler, and handles all
-     requests to the url http://wikiapp.appspot.com/
-  """
-
-  def get(self):
-    """When we request the base page, we direct users to the StartPage
-    """
-    self.redirect(self.getStartPage())
-
 
 class ViewRevisionListHandler(BaseRequestHandler):
 
@@ -261,10 +105,6 @@ class ViewDiffHandler(BaseRequestHandler):
 
 
 class ViewHandler(BaseRequestHandler):
-  """This class defines the request handler that handles all requests to the
-     URL http://wikiapp.appspot.com/view/*
-  """
-
   def get_page_content(self, page_title, revision_number=1):
     """When memcache lookup fails, we want to query the information from
        the datastore and return it.  If the data isn't in the data store,
@@ -313,55 +153,10 @@ class ViewHandler(BaseRequestHandler):
 
     return page_content
 
-  def post(self, page_title):
-    """
-    Updates a wiki page. Creates a new WikiRevision, if necessary, then flushes some cache.
-    """
-    wiki_user = self.get_wiki_user(True, '/' + page_title + '?edit=1')
-    current_user = wiki_user.wiki_user
+  def get(self, page_name=None):
+    if page_name is None or page_name == '':
+      page_name = self.settings.get('start_page')
 
-    # get the user entered content in the form
-    body = self.request.get('body').strip()
-
-    # Find the entry, if it exists
-    entry = self.getWikiContent(page_title)
-
-    # Generate the version number based on the entries previous existence
-    if entry:
-      latest_version = WikiRevision.gql('WHERE wiki_page = :content ORDER BY version_number DESC', content=entry).get()
-      if latest_version:
-        version_number = latest_version.version_number + 1
-        if latest_version.author:
-          to = latest_version.author.wiki_user.email()
-          if to != current_user.email():
-            self.notifyUser(to, 'Your page "%s" was edited by %s.\nhttp://%s/%s' % (self.get_page_name(page_title), current_user.email(), self.request.environ['HTTP_HOST'], page_title))
-      else:
-        version_number = 1
-    else:
-      version_number = 1
-      entry = WikiContent(title=self.get_page_name(page_title))
-      entry.put()
-
-    # Create a version for this entry
-    version = WikiRevision(version_number=version_number,
-                           revision_body=body, author=wiki_user,
-                           wiki_page=entry, pread=(self.request.get('pread') == 'True'))
-    version.put()
-
-    # above, memcache sets the following:
-    # return [wiki_body, author_email, author_nickname, version, version_date]
-    content = [markdown.markdown(body), current_user.email(), 
-               current_user.nickname(), version_number, version.created, version.pread]
-
-    memcache.delete(self.get_page_cache_key(page_title))
-    logging.debug('deleted %s from cache' % page_title)
-    memcache.delete('/sitemap.xml')
-    memcache.delete('/w/changes')
-
-    # After the entry has been saved, direct the user back to view the page
-    self.redirect('/' + page_title)
-
-  def get(self, page_name):
     if self.request.get("edit"):
       return self.get_edit(page_name)
     elif self.request.get("history"):
@@ -370,75 +165,65 @@ class ViewHandler(BaseRequestHandler):
       return self.get_view(page_name)
 
   def get_view(self, page_name):
-    revision_number = None
-    if self.request.get('r'):
-      revision_number = int(self.request.get('r'))
+    self.acl.check_read_pages()
+    page = pages.cache.get(pages.unquote(page_name), self.request.get('r'))
 
-    mck = self.get_page_cache_key(page_name, revision_number)
-    content = memcache.get(mck)
+    links = '<a class="int" href="/w/history?page=%s">History</a>' % (page_name)
+    if self.acl.can_edit_pages():
+      links = '<a class="int" href="/w/edit?page=%s">Edit</a> %s' % (page_name, links)
 
-    if content:
-      logging.debug('found %s in cache' % mck)
-    else:
-      wiki_body, author_email, author_nickname, version, version_date, pread = self.get_content(page_name, revision_number)
+    page['body'] = page['body'].replace('</h1>', '<small>' + links + '</small></h1>')
 
-      if not pread:
-        self.acl.check_read_pages()
-
-      content = self.generate('view.html', template_values={
-        'page_name': page_name,
-        'page_title': self.get_page_name(page_name),
-        'body': wiki_body,
-        'author': author_nickname,
-        'author_email': author_email,
-        'version': version,
-        'version_date': version_date}, ret=True)
-
-      logging.debug('saving %s in cache' % mck)
-      memcache.set(mck, content, time=600)
-
-    self.response.out.write(content)
+    self.generate('view.html', template_values={
+      'page': page,
+    })
 
   def get_edit(self, page_name):
     self.acl.check_edit_pages()
+    page = pages.get(pages.unquote(page_name), self.request.get('r'))
     self.generate('edit.html', template_values={
-      'page_name': page_name,
-      'page_title': self.get_page_name(page_name),
-      'current_version': self.getPageRevision(page_name, self.request.get('r')),
+      'page': page,
     })
 
-  def get_history(self, page_name):
-    page = self.getWikiContent(page_name)
-    if not page:
-      self.error(404)
-    else:
-      history = WikiRevision.gql('WHERE wiki_page = :1 ORDER BY version_number DESC', page).fetch(100)
-      self.generate('history.html', template_values = { 'page_name': page_name, 'page_title': page.title, 'revisions': history })
+class HistoryHandler(BaseRequestHandler):
+  def get(self):
+    self.acl.check_read_pages()
+    page_name = self.request.get('page')
+    page = pages.get(page_name)
+    history = WikiRevision.gql('WHERE wiki_page = :1 ORDER BY version_number DESC', page).fetch(100)
+    self.generate('history.html', template_values = { 'page_name': page_name, 'page_title': page.title, 'revisions': history })
 
 class EditHandler(BaseRequestHandler):
-  """When we receive an HTTP Get request to edit pages, we pull that
-     page from the datastore and allow the user to edit.  If the page does 
-     not exist we pass empty arguments to the template and the template 
-     allows the user to create the page
-  """
-  def get(self, page_title):
-    # We require that the user be signed in to edit a page
-    current_user = users.get_current_user()
+  def get(self):
+    self.acl.check_edit_pages()
+    template_values = {}
 
-    if not current_user:
-      self.redirect(users.create_login_url('/edit/' + page_title))
+    if self.request.get('page'):
+      template_values['page'] = pages.get(self.request.get('page'), self.request.get('r'), create=True)
 
-    # Get the entry along with the current version
-    entry = WikiContent.gql('WHERE title = :1', page_title).get()
+    self.generate('edit.html', template_values)
 
-    current_version = WikiRevision.gql('WHERE wiki_page = :1 '
-                                       'ORDER BY version_number DESC', entry).get()
+  def post(self):
+    self.acl.check_edit_pages()
 
-    # Generate edit template, which posts to the save handler
-    self.generate('edit.html',
-                  template_values={'page_name': page_title,
-                                   'page_title': urllib.unquote(page_title).decode('utf-8'),
-                                   'current_version': current_version})
+    name = self.request.get('name')
+    body = self.request.get('body')
+
+    title = pages.get_title(pages.wikify(body))
+    if not name:
+      name = title
+
+    logging.debug('Saving %s' % name)
+
+    page = pages.get(name, create=True)
+    page.body = body
+    page.title = title
+    pages.put(page)
+
+    # Remove old page from cache.
+    pages.cache.update(name)
+
+    self.redirect('/' + pages.quote(page.title))
 
 
 class UserProfileHandler(BaseRequestHandler):
@@ -589,7 +374,14 @@ class SendAdminEmail(BaseRequestHandler):
 class UsersHandler(BaseRequestHandler):
   def get(self):
     self.acl.check_edit_settings()
-    users = WikiUser.all().fetch(1000)
+
+    users = [{
+      'name': user.wiki_user.nickname(),
+      'email': user.wiki_user.email(),
+      'md5': md5.new(user.wiki_user.email()).hexdigest(),
+      'joined': user.joined,
+      } for user in WikiUser.gql('ORDER BY wiki_user').fetch(1000)]
+
     self.generate('users.html', template_values = { 'users': users })
 
   def post(self):
@@ -600,43 +392,44 @@ class UsersHandler(BaseRequestHandler):
       user.put()
     self.redirect('/w/users')
 
-class PageRssHandler(BaseRequestHandler):
-  def get(self):
-    self.acl.check_read_pages()
-    pages = {}
-    for revision in WikiRevision.gql('ORDER BY created DESC').fetch(1000):
-      page = revision.wiki_page.title
-      if page not in pages:
-        pages[page] = { 'name': page, 'title': self.get_page_name(page), 'created': revision.created, 'author': revision.author }
-    self.generateRss('index-rss.html', template_values = {
-      'items': [pages[page] for page in pages],
-    });
-
 class IndexHandler(BaseRequestHandler):
   def get(self):
     self.acl.check_read_pages()
-    self.generate('index.html', template_values={'pages': [page.title for page in WikiContent.gql('ORDER BY title').fetch(1000)] })
+
+    if '.rss' == self.request.path[-4:]:
+      plist = {}
+      for revision in WikiRevision.gql('ORDER BY created DESC').fetch(1000):
+        page = revision.wiki_page.title
+        if page not in plist:
+          plist[page] = { 'name': page, 'title': self.get_page_name(page), 'created': revision.created, 'author': revision.author }
+      self.generateRss('index-rss.html', template_values = {
+        'items': [plist[page] for page in plist],
+      });
+    else:
+      self.generate('index.html', template_values={'pages': [{
+        'name': page.title,
+        'uri': '/' + pages.quote(page.title),
+      } for page in WikiContent.gql('ORDER BY title').fetch(1000)] })
 
 class ChangesHandler(BaseRequestHandler):
   def get(self):
     self.acl.check_read_pages()
-    content = memcache.get('/w/changes')
-    if not content:
-      template_values={
-        'self': self.request.url,
-        'changes': [revision for revision in WikiRevision.gql('ORDER BY created DESC').fetch(1000)],
-      }
-      content = self.generate('changes.html', template_values, ret=True)
-      memcache.set('/w/changes', content)
 
-    self.response.out.write(content)
+    if '.rss' == self.request.path[-4:]:
+      self.generateRss('changes-rss.html', template_values={
+        'changes': WikiContent.gql('ORDER BY created DESC').fetch(1000),
+      })
+    else:
+      content = memcache.get('/w/changes')
+      if not content:
+        template_values={
+          'self': self.request.url,
+          'changes': WikiContent.gql('ORDER BY created DESC').fetch(1000),
+        }
+        content = self.generate('changes.html', template_values, ret=True)
+        memcache.set('/w/changes', content)
 
-class ChangesRssHandler(BaseRequestHandler):
-  def get(self):
-    self.acl.check_read_pages()
-    self.generateRss('changes-rss.html', template_values={
-      'changes': [revision for revision in WikiRevision.gql('ORDER BY created DESC').fetch(1000)],
-    })
+      self.response.out.write(content)
 
 class InterwikiHandler(BaseRequestHandler):
   def get(self):
@@ -694,13 +487,31 @@ class SitemapHandler(BaseRequestHandler):
     self.response.headers['Content-Type'] = 'text/xml'
     self.response.out.write(content)
 
-_WIKI_URLS = [('/', MainHandler),
-              ('/w/changes', ChangesHandler),
-              ('/w/changes.rss', ChangesRssHandler),
-              ('/w/index', IndexHandler),
-              ('/w/index.rss', PageRssHandler),
+class UpgradeHandler(BaseRequestHandler):
+  def get(self):
+    self.acl.check_edit_settings()
+
+    for page in WikiContent.all().fetch(1000):
+      if page.updated is None or page.author is None or page.body is None:
+        rev = WikiRevision.gql('WHERE wiki_page = :1 ORDER BY version_number DESC', page).get()
+        if rev is not None:
+          page.updated = rev.created
+          page.author = rev.author
+          page.pread = rev.pread
+          page.body = rev.revision_body
+          page.put()
+
+    self.redirect('/w/index')
+
+
+_WIKI_URLS = [('/', ViewHandler),
+              ('/w/changes(?:\.rss)?', ChangesHandler),
+              ('/w/edit', EditHandler),
+              ('/w/history', HistoryHandler),
+              ('/w/index(?:\.rss)?', IndexHandler),
               ('/w/interwiki', InterwikiHandler),
               ('/w/users', UsersHandler),
+              ('/w/upgrade', UpgradeHandler),
               ('/w/settings', SettingsHandler),
               ('/robots.txt', RobotsHandler),
               ('/sitemap.xml', SitemapHandler),

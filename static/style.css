@@ -42,6 +42,9 @@ a {
   margin: 0;
   padding: 0;
 }
+#header .title a {
+  margin-right: 1em;
+}
 #header div {
   padding: 2px 4px;
 }
@@ -184,4 +187,24 @@ table.c a.public {
   background-color: #eee;
   padding: 4px 0;
   text-align: left;
+}
+
+.userlist .avatar {
+  width: 48px;
+  height: 48px;
+  float: left;
+  margin: 0 8px 4px;
+}
+.userlist small {
+  color: gray;
+}
+
+h1 small {
+  text-transform: lowercase;
+  margin-left: 1em;
+}
+#page small a.int {
+  font-size: 10pt;
+  color: green;
+  font-weight: normal;
 }

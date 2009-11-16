@@ -1,31 +1,7 @@
 {% extends "base.html" %}
-{% block title %}{{ page_title }} — {{ settings.title }}{% endblock %}
+{% block title %}{{ page.name }} — {{ settings.title }}{% endblock %}
 {% block content %}
-<!--
-<h1>{{ page_title }}<br /></h1>
-<a href="/revisionlist/{{ page_title }}">View revision list</a><br>
-<em>Version: {{ version }} Last Edited: {{ version_date|date:"P M d, Y"}}</em>
--->
-    {% if body %}
-        <div id="pb">
-            {{ body }}
-        </div>
-        <!--
-    {% if author %}
-        <em>By: <a href="/user/{{ author_email }}">{{ author }} </a></em>
-    {% endif %}
-        <p>
-            <a href="/edit/{{ page_title }}">Edit this page</a>
-        </p>
-        -->
-    {% else %}
-        <div id="pb">
-          <h1>Page Not Found</h1>
-          {% if canedit %}
-            <p>This page does not exist, but you can <a class="int" href="/{{ page_name }}?edit=1">create it</a>.</p>
-          {% else %}
-            <p>This page does not exist.</p>
-          {% endif %}
-        </div>
-    {% endif %}
+<div id="pb">
+  {{ page.body }}
+</div>
 {% endblock %}

@@ -11,13 +11,13 @@ class HTTPException(Exception):
   pass
 
 class UnauthorizedException(HTTPException):
-  def __init__(self, code):
+  def __init__(self):
     self.code = 401
     self.title = 'Unauthorized'
     self.message = 'Please log in and come back.'
 
 class ForbiddenException(HTTPException):
-  def __init__(self, code):
+  def __init__(self):
     self.code = 403
     self.title = 'Forbidden'
     self.message = 'You don\'t have access to this page.'

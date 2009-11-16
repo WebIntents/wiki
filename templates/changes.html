@@ -12,16 +12,16 @@
 </tr>
 </thead>
 <tbody>
-{% for rev in changes %}
+{% for page in changes %}
 <tr>
 <td>
-<a class="int{% if rev.pread %} public{% endif %}" href="/{{ rev.wiki_page.title }}?r={{ rev.version_number }}">{{ rev.wiki_page.title }}</a>#{{ rev.version_number }}
+<a class="int{% if page.pread %} public{% endif %}" href="/{{ page.title }}">{{ page.title }}</a>
 </td>
 <td>
-{{ rev.created|date:"d.m.y, H:i" }}
+{{ page.created|date:"d.m.y, H:i" }}
 </td>
 <td>
-{{ rev.author.wiki_user }}
+{{ page.author.wiki_user }}
 </td>
 </tr>
 {% endfor %}

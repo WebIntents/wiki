@@ -30,31 +30,27 @@
           </div>
           <div class="title">
             <a href="/"><span>{{ settings.title }}</span></a>
+            <a href="/w/edit">New Page</a>
           </div>
         </div>
-        {% if page_name and version %}
+        <!--
+        {% if page.name %}
           <div class="bottom">
             <div class="buttons">
               {% if version_date %}
                 <div class="meta">{{ version_date|date:"d.m.y, H:i" }} by {{ author }}</div>
               {% endif %}
-              <form method="get">
-                <!--
-                <input type="submit" name="new" value="New Page"/>
-                -->
+              {% if page %}
+                <a href="/w/edit">New Page</a>
                 {% if not editing %}
-                  {% if version %}
-                    <input type="submit" name="edit" value="Edit Page"/>
-                    <input type="hidden" name="r" value="{{ version }}"/>
-                  {% endif %}
+                  <a href="/w/edit?page={{ page.name|escape }}">Edit Page</a>
                 {% endif %}
-                {% if version_date %}
-                  <a href="?history=1">History</a>
-                {% endif %}
-              </form>
+                <a href="/{{ page.name|escape }}?history=1">History</a>
+              {% endif %}
             </div>
           </div>
         {% endif %}
+        -->
       </div>
     	{% endblock %}
     <div id="page">
