@@ -2,7 +2,7 @@ body {
   padding: 0;
   margin: 0;
   font-size: 10pt;
-  font-family: sans;
+  font-family: arial, sans-serif;
 }
 
 a {
@@ -36,6 +36,13 @@ a {
   font-weight: normal;
   font-size: 1.32em;
   border: none;
+}
+#page p {
+  line-height: 1.25em;
+}
+#page li {
+  margin-top: .5em;
+  margin-bottom: .5em;
 }
 
 #header {
@@ -83,7 +90,7 @@ background: #DDD url(data:image/gif;base64,R0lGODlhBwD0AdU/APr7+/j4+d7e3u3t7erq6
   margin: 0 0 1em;
   border: solid 1px #ccc;
   outline: none;
-  font-family: sans-serif;
+  font-family: monospace;
 }
 #pb a {
   /*
