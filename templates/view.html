@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block title %}{{ page.name }} — {{ settings.title }}{% endblock %}
+{% block heads %}
+<link rel="alternate" type="application/x-wiki" href="/w/edit?page={{ page.name }}"/>
+{% endblock %}
 {% block content %}
 <div id="pb">
   {{ page.body }}
