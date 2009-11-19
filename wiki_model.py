@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # vim: set ts=2 sts=2 sw=2 et:
 #
 # Copyright 2008 Google Inc. All Rights Reserved.
