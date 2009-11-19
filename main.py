@@ -477,14 +477,12 @@ class SitemapHandler(BaseRequestHandler):
       host = self.request.environ['HTTP_HOST']
 
       for page in WikiContent.all().fetch(1000):
-        rev = WikiRevision.gql('WHERE wiki_page = :1 ORDER BY version_number DESC', page).get()
-        if rev:
-          if settings.data.pread or rev.pread:
-            line = "<url><loc>http://%s/%s</loc>" % (host, urllib.quote(page.title.encode('utf8')))
-            if rev and rev.created:
-              line += "<lastmod>%s</lastmod>" % (rev.created.isoformat())
-            line += "</url>\n"
-            content += line
+        if settings.data.pread or page.pread:
+          line = "<url><loc>http://%s/%s</loc>" % (host, pages.quote(page.title))
+          if page.updated:
+            line += "<lastmod>%s</lastmod>" % (page.updated.strftime('%Y-%m-%d'))
+          line += "</url>\n"
+          content += line
       content += "</urlset>\n"
 
       memcache.set('/sitemap.xml', content)
