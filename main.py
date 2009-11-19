@@ -156,21 +156,25 @@ class ViewHandler(BaseRequestHandler):
   def get(self, page_name=None):
     if page_name is None or page_name == '':
       page_name = self.settings.get('start_page')
+    else:
+      page_name = pages.unquote(page_name)
+
+    logging.debug(page_name)
 
     if self.request.get("edit"):
       return self.get_edit(page_name)
     elif self.request.get("history"):
-        return self.get_history(page_name)
+      return self.get_history(page_name)
     else:
       return self.get_view(page_name)
 
   def get_view(self, page_name):
     self.acl.check_read_pages()
-    page = pages.cache.get(pages.unquote(page_name), self.request.get('r'))
+    page = pages.cache.get(page_name, self.request.get('r'))
 
-    links = '<a class="int" href="/w/history?page=%s">History</a>' % (page_name)
+    links = '<a class="int" href="/w/history?page=%s">History</a>' % (page_name.replace('_', ' '))
     if self.acl.can_edit_pages():
-      links = '<a class="int" href="/w/edit?page=%s">Edit</a> %s' % (page_name, links)
+      links = '<a class="int" href="/w/edit?page=%s">Edit</a> %s' % (page_name.replace('_', ' '), links)
 
     page['body'] = page['body'].replace('</h1>', '<small>' + links + '</small></h1>')
 
@@ -417,14 +421,14 @@ class ChangesHandler(BaseRequestHandler):
 
     if '.rss' == self.request.path[-4:]:
       self.generateRss('changes-rss.html', template_values={
-        'changes': WikiContent.gql('ORDER BY created DESC').fetch(1000),
+        'changes': WikiContent.gql('ORDER BY updated DESC').fetch(1000),
       })
     else:
       content = memcache.get('/w/changes')
-      if not content:
+      if not content or self.request.get('nc'):
         template_values={
           'self': self.request.url,
-          'changes': WikiContent.gql('ORDER BY created DESC').fetch(1000),
+          'changes': WikiContent.gql('ORDER BY updated DESC').fetch(1000),
         }
         content = self.generate('changes.html', template_values, ret=True)
         memcache.set('/w/changes', content)
@@ -500,6 +504,9 @@ class UpgradeHandler(BaseRequestHandler):
           page.pread = rev.pread
           page.body = rev.revision_body
           page.put()
+      elif '_' in page.title:
+        page.title = page.title.replace('_', ' ')
+        page.put()
 
     self.redirect('/w/index')
 

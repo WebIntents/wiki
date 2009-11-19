@@ -10,7 +10,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
 # gaewiki imports
-import acl, settings
+import acl, pages, settings
 from wiki_model import WikiContent, WikiRevision, WikiUser
 from markdown import markdown
 
@@ -41,7 +41,7 @@ class BaseRequestHandler(webapp.RequestHandler):
       })
 
   def getStartPage(self):
-    return '/' + self.settings.get('start_page')
+    return '/' + pages.quote(self.settings.get('start_page'))
 
   def notifyUser(self, address, message):
     sent = False
