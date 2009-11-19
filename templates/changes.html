@@ -3,6 +3,7 @@
 {% block content %}
 <h1>Recent changes <a class="int" href="/w/changes.rss"><img src="/static/rss.png" alt="rss" width="16" height="16"/></a></h1>
 
+{%if changes %}
 <table class="c">
 <thead>
 <tr>
@@ -18,7 +19,7 @@
 <a class="int{% if page.pread %} public{% endif %}" href="/{{ page.title }}">{{ page.title }}</a>
 </td>
 <td>
-{{ page.created|date:"d.m.y, H:i" }}
+{{ page.updated|date:"d.m.y, H:i" }}
 </td>
 <td>
 {{ page.author.wiki_user }}
@@ -28,4 +29,7 @@
 </tbody>
 </table>
 
+{% else %}
+<p>Nothing was changed yet.</p>
+{% endif %}
 {% endblock %}
