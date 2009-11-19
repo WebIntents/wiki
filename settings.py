@@ -24,7 +24,7 @@ class Settings(object):
     self.data = memcache.get('#settings#')
     if not self.data:
       self.data = self.read()
-      if not self.data.key():
+      if not self.data.is_saved():
         defaults = self.defaults()
         for k in defaults:
           if not getattr(self.data, k):
