@@ -222,6 +222,7 @@ class EditHandler(BaseRequestHandler):
     page = pages.get(name, create=True)
     page.body = body
     page.title = title
+    page.author = self.get_wiki_user()
     pages.put(page)
 
     # Remove old page from cache.
