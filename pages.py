@@ -81,10 +81,10 @@ def get_title(text):
 
 class cache:
   @classmethod
-  def get(cls, name, revision=None):
+  def get(cls, name, revision=None, nocache=False):
     key = cls.get_key(name, revision)
     value = memcache.get(key)
-    if value is None:
+    if nocache or value is None:
       page = get(name, revision)
       value = {
         'name': name,

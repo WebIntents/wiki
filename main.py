@@ -170,7 +170,7 @@ class ViewHandler(BaseRequestHandler):
 
   def get_view(self, page_name):
     self.acl.check_read_pages()
-    page = pages.cache.get(page_name, self.request.get('r'))
+    page = pages.cache.get(page_name, self.request.get('r'), nocache=('nc' in self.request.arguments()))
 
     links = '<a class="int" href="/w/history?page=%s">History</a>' % (page_name.replace('_', ' '))
     if self.acl.can_edit_pages():
