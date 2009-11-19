@@ -32,7 +32,7 @@
           </tr>
           <tr>
             <th><label for="footer_setting">Page footer:</label></th>
-            <td><textarea class="text" name="footer" id="footer_setting" rows="5">{{ settings.footer }}</textarea></td>
+            <td><textarea class="text" name="footer" id="footer_setting" rows="5">{% if settings.footer %}{{ settings.footer }}{% endif %}</textarea></td>
           </tr>
         </tbody>
         <tfoot>
