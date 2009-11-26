@@ -180,6 +180,7 @@ class ViewHandler(BaseRequestHandler):
 
     self.generate('view.html', template_values={
       'page': page,
+      'sidebar': pages.cache.get('sidebar', create=True),
     })
 
   def get_edit(self, page_name):

@@ -47,8 +47,9 @@ def wikify(text):
   """
   Applies wiki markup to raw markdown text.
   """
-  text, count = _WIKI_WORD.subn(wikify_one, text)
-  text = markdown.markdown.markdown(text).strip()
+  if text is not None:
+    text, count = _WIKI_WORD.subn(wikify_one, text)
+    text = markdown.markdown.markdown(text).strip()
   return text
 
 def wikify_one(pat):
@@ -81,11 +82,11 @@ def get_title(text):
 
 class cache:
   @classmethod
-  def get(cls, name, revision=None, nocache=False):
+  def get(cls, name, revision=None, nocache=False, create=False):
     key = cls.get_key(name, revision)
     value = memcache.get(key)
     if nocache or value is None:
-      page = get(name, revision)
+      page = get(name, revision, create=create)
       value = {
         'name': name,
         'body': wikify(page.body),

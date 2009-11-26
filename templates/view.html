@@ -4,7 +4,14 @@
 <link rel="alternate" type="application/x-wiki" href="/w/edit?page={{ page.name }}"/>
 {% endblock %}
 {% block content %}
-<div id="pb">
+
+{% if sidebar.body %}
+  <div id="sidebar">
+    {{ sidebar.body }}
+  </div>
+{% endif %}
+
+<div id="pb"{% if sidebar.body %} class="wsb"{% endif %}>
   {{ page.body }}
 </div>
 {% endblock %}
