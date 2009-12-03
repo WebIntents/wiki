@@ -8,7 +8,7 @@
         <tbody>
           <tr>
             <th><label for="title">Wiki title:</label></th>
-            <td><input class="text" type="text" name="title" id="title" value="{{ settings.title }}"/></td>
+            <td><input class="text" type="text" name="title" id="title" value="{{ settings.title|escape }}"/></td>
             <td/>
           </tr>
           <tr>
@@ -33,17 +33,17 @@
           </tr>
           <tr>
             <th><label for="owner_meta">Site verification code:</label></th>
-            <td><input class="text" type="text" name="owner_meta" id="owner_meta"{% if settings.owner_meta %} value="{{ settings.owner_meta }}"{% endif %}/></td>
+            <td><input class="text" type="text" name="owner_meta" id="owner_meta"{% if settings.owner_meta %} value="{{ settings.owner_meta|escape }}"{% endif %}/></td>
             <td/>
           </tr>
           <tr>
             <th><label for="footer_setting">Page footer:</label></th>
-            <td><textarea class="text" name="footer" id="footer_setting" rows="5">{% if settings.footer %}{{ settings.footer }}{% endif %}</textarea></td>
+            <td><textarea class="text" name="footer" id="footer_setting" rows="5">{% if settings.footer %}{{ settings.footer|escape }}{% endif %}</textarea></td>
             <td/>
           </tr>
           <tr>
             <th><label for="iw_setting"><a href="/w/interwiki">Interwikis</a>:</label></th>
-            <td><textarea class="text" name="interwiki" id="iw_setting" rows="5">{% if settings.interwiki %}{{ settings.interwiki }}{% endif %}</textarea></td>
+            <td><textarea class="text" name="interwiki" id="iw_setting" rows="5">{% if settings.interwiki %}{{ settings.interwiki|escape }}{% endif %}</textarea></td>
             <td/>
           </tr>
         </tbody>
