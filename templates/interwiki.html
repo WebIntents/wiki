@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Interwiki{% endblock %}
 {% block content %}
+<div id="pb">
 <h1>Interwiki syntax</h1>
 
 <table class="c">
@@ -31,6 +32,8 @@
 {% endfor %}
 </tbody>
 </table>
-<p>You'll have to edit <code>main.py</code> to configure this.</p>
+<p>This is <a class="int" href="/w/settings">configurable</a>.</p>
+<p>Links that use unknown interwikis will be displayed <a class="iw-broken" title="Unsupported interwiki was used (xyz).">like this</a>.</p>
 
+</div>
 {% endblock %}

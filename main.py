@@ -65,11 +65,6 @@ import acl, pages
 _DEBUG = True
 _ADMIN_EMAIL='justin.forest@gmail.com'
 _SETTINGS = {
-  'interwiki': {
-    'google': 'http://www.google.ru/search?sourceid=chrome&ie=UTF-8&q=%s',
-    'wp': 'http://en.wikipedia.org/wiki/Special:Search?search=%s',
-    'wpru': 'http://ru.wikipedia.org/wiki/Special:Search?search=%s',
-  },
 }
 
 class ViewRevisionListHandler(BaseRequestHandler):
@@ -129,7 +124,7 @@ class ViewHandler(BaseRequestHandler):
       author_nickname = requested_version.author.wiki_user.nickname()
       version_date = requested_version.created
       # Replace all wiki words with links to those wiki pages
-      wiki_body = self.wikify(body)
+      wiki_body = pages.wikifier(self.settings).wikify(body)
       pread = requested_version.pread
     else:
       # These things do not exist
@@ -159,8 +154,6 @@ class ViewHandler(BaseRequestHandler):
     else:
       page_name = pages.unquote(page_name)
 
-    logging.debug(page_name)
-
     if self.request.get("edit"):
       return self.get_edit(page_name)
     elif self.request.get("history"):
@@ -172,7 +165,7 @@ class ViewHandler(BaseRequestHandler):
     template_values = {}
 
     try:
-      template_values['page'] = pages.cache.get(page_name, self.request.get('r'), nocache=('nc' in self.request.arguments()))
+      template_values['page'] = pages.cache.get(page_name, self.request.get('r'), nocache=('nc' in self.request.arguments()), settings=self.settings)
     except acl.HTTPException, e:
       template_values['page'] = {
         'name': page_name,
@@ -224,11 +217,9 @@ class EditHandler(BaseRequestHandler):
     name = self.request.get('name')
     body = self.request.get('body')
 
-    title = pages.get_title(pages.wikify(body))
+    title = pages.get_title(pages.wikifier(self.settings).wikify(body))
     if not name:
       name = title
-
-    logging.debug('Saving %s' % name)
 
     page = pages.get(name, create=True)
     page.body = body
@@ -456,9 +447,8 @@ class ChangesHandler(BaseRequestHandler):
 class InterwikiHandler(BaseRequestHandler):
   def get(self):
     self.acl.check_edit_pages()
-    items = _SETTINGS['interwiki'].keys()
-    items.sort()
-    self.generate('interwiki.html', template_values={'iwlist': [{'key': item, 'host': urlparse.urlparse(_SETTINGS['interwiki'][item])[1], 'sample': _SETTINGS['interwiki'][item].replace('%s', 'hello%2C%20world')} for item in items]})
+    items = self.settings.getInterWiki()
+    self.generate('interwiki.html', template_values={'iwlist': [{'key': k, 'host': urlparse.urlparse(items[k])[1], 'sample': items[k].replace('%s', 'hello%2C%20world')} for k in sorted(items.keys())]})
 
 class SettingsHandler(BaseRequestHandler):
   def get(self):

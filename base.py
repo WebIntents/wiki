@@ -96,8 +96,6 @@ class BaseRequestHandler(webapp.RequestHandler):
     # We check if there is a current user and generate a login or logout URL
     user = users.get_current_user()
 
-    logging.debug('generating ' + template_name)
-
     if user:
       log_in_out_url = users.create_logout_url(self.getStartPage())
     else:
@@ -107,12 +105,10 @@ class BaseRequestHandler(webapp.RequestHandler):
 
     # We'll display the user name if available and the URL on all pages
     values = {'user': user, 'log_in_out_url': log_in_out_url, 'editing': self.request.get('edit'), 'is_admin': users.is_current_user_admin() }
-    values['sidebar'] = pages.cache.get('sidebar', create=True)
+    values['sidebar'] = pages.cache.get('sidebar', create=True, settings=self.settings)
     url = urlparse.urlparse(self.request.url)
     values['base'] = url[0] + '://' + url[1]
     values.update(template_values)
-
-    logging.debug(values)
 
     # Construct the path to the template
     directory = os.path.dirname(__file__)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: set ts=2 sts=2 sw=2 et:
 
-import logging
+import logging, re
 from google.appengine.api import memcache
 from google.appengine.ext import db
 
@@ -17,7 +17,8 @@ class WikiSettings(db.Model):
   # http://www.google.com/support/webmasters/bin/answer.py?answer=35659
   owner_meta = db.StringProperty()
   # page footer
-  footer = db.StringProperty()
+  footer = db.TextProperty()
+  interwiki = db.TextProperty()
 
 class Settings(object):
   def __init__(self):
@@ -40,6 +41,7 @@ class Settings(object):
       'pread': True,
       'pwrite': False,
       'owner_meta': None,
+      'interwiki': "google = http://www.google.ru/search?sourceid=chrome&ie=UTF-8&q=%s\nwp = http://en.wikipedia.org/wiki/Special:Search?search=%s",
     }
 
   def read(self):
@@ -73,3 +75,13 @@ class Settings(object):
 
   def get(self, k):
     return getattr(self.data, k)
+
+  def getInterWiki(self):
+    interwiki = {}
+    if self.data.interwiki:
+      m = re.compile('^(\w+)\s+=\s+(.*)$')
+      for line in self.data.interwiki.split("\n"):
+        mr = m.match(line)
+        if mr:
+          interwiki[mr.group(1)] = mr.group(2).strip()
+    return interwiki

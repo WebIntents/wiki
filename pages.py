@@ -43,49 +43,54 @@ def quote(name, underscore=True):
     name = name.replace(' ', '_')
   return urllib.quote(name.encode('utf8'))
 
-def wikify(text):
-  """
-  Applies wiki markup to raw markdown text.
-  """
-  if text is not None:
-    text, count = _WIKI_WORD.subn(wikify_one, text)
-    text = markdown.markdown.markdown(text).strip()
-  return text
-
-def wikify_one(pat):
-  page_title = pat.group(2)
-  if pat.group(1):
-    page_name = pat.group(1).rstrip('|')
-  else:
-    page_name = page_title
-
-  # interwiki
-  """
-  if ':' in page_name:
-    parts = page_name.split(':', 2)
-    if page_name == page_title:
-      page_title = parts[1]
-    if parts[0] in _SETTINGS['interwiki']:
-      return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], _SETTINGS['interwiki'][parts[0]].replace('%s', urllib.quote(parts[1])), page_title)
-  """
-
-  return '<a class="int" href="%s">%s</a>' % (quote(page_name), page_title)
-
 def get_title(text):
   r = re.search("<h1>(.*)</h1>", text)
   if r:
     return r.group(1)
 
+class wikifier:
+  def __init__(self, settings):
+    self.settings = settings
+    self.interwiki = settings.getInterWiki()
+
+  def wikify(self, text):
+    """
+    Applies wiki markup to raw markdown text.
+    """
+    if text is not None:
+      text, count = _WIKI_WORD.subn(self.wikify_one, text)
+      text = markdown.markdown.markdown(text).strip()
+    return text
+
+  def wikify_one(self, pat):
+    page_title = pat.group(2)
+    if pat.group(1):
+      page_name = pat.group(1).rstrip('|')
+    else:
+      page_name = page_title
+
+    # interwiki
+    if ':' in page_name:
+      parts = page_name.split(':', 2)
+      if page_name == page_title:
+        page_title = parts[1]
+      if parts[0] in self.interwiki:
+        return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], self.interwiki[parts[0]].replace('%s', urllib.quote(parts[1])), page_title)
+      else:
+        return '<a title="Unsupported interwiki was used (%s)." class="iw-broken">%s</a>' % (urllib.quote(parts[0]), page_title)
+
+    return '<a class="int" href="%s">%s</a>' % (quote(page_name), page_title)
+
 class cache:
   @classmethod
-  def get(cls, name, revision=None, nocache=False, create=False):
+  def get(cls, name, revision=None, nocache=False, create=False, settings=None):
     key = cls.get_key(name, revision)
     value = memcache.get(key)
     if nocache or value is None:
       page = get(name, revision, create=create)
       value = {
         'name': name,
-        'body': wikify(page.body),
+        'body': wikifier(settings).wikify(page.body),
         'author': None,
         'author_email': None,
         'updated': page.updated,
@@ -94,7 +99,6 @@ class cache:
       if page.author:
         value['author'] = page.author.wiki_user.nickname()
         value['author_email'] = page.author.wiki_user.email()
-      logging.debug('Saved %s in cache (%s)' % (name, key))
       memcache.set(key, value)
     return value
 

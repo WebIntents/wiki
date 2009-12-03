@@ -198,3 +198,11 @@ table.c a.public {
   border-bottom: dashed gray 1px;
   cursor: help;
 }
+
+
+a.iw-broken {
+  color: red;
+  background: none;
+  padding-right: 0;
+  text-decoration: underline;
+}
