@@ -102,7 +102,7 @@ a, #pb a.int {
 }
 #tabs li a {
   margin: 0;
-  line-height: 2em;
+  line-height: 24px;
   text-decoration: none;
 }
 #tabs li a:hover, #tabs .active a {
@@ -112,6 +112,10 @@ a, #pb a.int {
   background-color: white;
   border: solid 1px #ddd;
   border-bottom: none;
+}
+#tabs.locked a.view {
+  padding: 2px 0 2px 20px;
+  background: transparent url(lock.png) no-repeat center left;
 }
 
 #page {

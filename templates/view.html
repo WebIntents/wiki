@@ -5,8 +5,8 @@
 {% endblock %}
 {% block content %}
 
-<ul id="tabs">
-  <li class="active"><a href="/{{ page.name }}">View</a></li>
+<ul id="tabs"{% if page.pread %}{% else %} class="locked"{% endif %}>
+  <li class="active"><a class="view" href="/{{ page.name }}">View</a></li>
   <li><a href="/w/edit?page={{ page.name }}">Edit</a></li>
   <li><a href="/w/history?page={{ page.name }}">History</a></li>
 </ul>
