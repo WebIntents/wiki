@@ -10,8 +10,13 @@
 {% for user in users %}
 <tr>
 <td>
-<img src="http://www.gravatar.com/avatar/{{ user.md5 }}?s=48&amp;r=x" class="avatar" alt="avatar"/>
-{{ user.name }}<br/>
+<a href="/users/{{ user.name|escape }}">
+<img src="http://www.gravatar.com/avatar/{{ user.md5 }}?s=48&amp;r=x" class="avatar" width="48" height="48" alt="avatar"/>
+</a>
+</td>
+<td>
+<a href="/users/{{ user.name|escape }}">{{ user.name }}</a>
+<br/>
 <small>Since {{ user.joined|date:"d.m.Y" }}</small>
 </td>
 <td>
@@ -22,6 +27,7 @@
 </tbody>
 <tfoot>
 <tr>
+<td/>
 <td>
 <input type="text" name="email"/>
 </td>
