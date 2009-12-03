@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Recent changes{% endblock %}
 {% block content %}
-<h1>Recent changes <a class="int" href="/w/changes.rss"><img src="/static/rss.png" alt="rss" width="16" height="16"/></a></h1>
+<ul id="tabs">
+<li class="active"><a href="/w/changes">View</a></li>
+<li><a href="/w/changes.rss">RSS</a></li>
+</ul>
+
+<div id="pb" class="wtabs">
+<h1>Recent changes</h1>
 
 {%if changes %}
 <table class="c">
@@ -32,4 +38,5 @@
 {% else %}
 <p>Nothing was changed yet.</p>
 {% endif %}
+</div>
 {% endblock %}

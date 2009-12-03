@@ -59,7 +59,7 @@ from wiki_model import WikiContent
 from wiki_model import WikiRevision
 from wiki_model import WikiUser
 from base import BaseRequestHandler
-import pages
+import acl, pages
 
 # Set the debug level
 _DEBUG = True
@@ -170,18 +170,30 @@ class ViewHandler(BaseRequestHandler):
 
   def get_view(self, page_name):
     self.acl.check_read_pages()
-    page = pages.cache.get(page_name, self.request.get('r'), nocache=('nc' in self.request.arguments()))
+    template_values = {}
 
+    try:
+      template_values['page'] = pages.cache.get(page_name, self.request.get('r'), nocache=('nc' in self.request.arguments()))
+    except acl.HTTPException, e:
+      template_values['page'] = {
+        'name': page_name,
+        'error': {
+          'code': e.code,
+          'message': e.message,
+        },
+        'body': '<h1>%s</h1><p>%s</p>' % (page_name, e.message),
+        'offer_create': True,
+      }
+
+    """
     links = '<a class="int" href="/w/history?page=%s">History</a>' % (page_name.replace('_', ' '))
     if self.acl.can_edit_pages():
       links = '<a class="int" href="/w/edit?page=%s">Edit</a> %s' % (page_name.replace('_', ' '), links)
 
     page['body'] = page['body'].replace('</h1>', '<small>' + links + '</small></h1>')
+    """
 
-    self.generate('view.html', template_values={
-      'page': page,
-      'sidebar': pages.cache.get('sidebar', create=True),
-    })
+    self.generate('view.html', template_values)
 
   def get_edit(self, page_name):
     self.acl.check_edit_pages()
@@ -223,7 +235,9 @@ class EditHandler(BaseRequestHandler):
     page = pages.get(name, create=True)
     page.body = body
     page.title = title
-    page.author = self.get_wiki_user()
+    page.author = self.get_wiki_user(True)
+    if not page.author and users.get_current_user():
+      raise Exception('Could not determine who you are.')
     pages.put(page)
 
     # Remove old page from cache.

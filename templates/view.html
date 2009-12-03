@@ -5,13 +5,23 @@
 {% endblock %}
 {% block content %}
 
-{% if sidebar.body %}
-  <div id="sidebar">
-    {{ sidebar.body }}
-  </div>
-{% endif %}
-
-<div id="pb"{% if sidebar.body %} class="wsb"{% endif %}>
-  {{ page.body }}
+<ul id="tabs">
+  <li class="active"><a href="/{{ page.name }}">View</a></li>
+  <li><a href="/w/edit?page={{ page.name }}">Edit</a></li>
+  <li><a href="/w/history?page={{ page.name }}">History</a></li>
+</ul>
+<div class="wtabs extl" id="pb">
+  {% if page.error %}
+    <h1>{{ page.name }}</h1>
+    <p>{{ page.error.message }}</p>
+    {% if page.offer_create %}
+      <form method="get" action="/w/edit">
+        <input type="hidden" name="page" value="{{ page.name|escape }}"/>
+        <input type="submit" value="Create this page"/>
+      </form>
+    {% endif %}
+  {% else %}
+    {{ page.body }}
+  {% endif %}
 </div>
 {% endblock %}

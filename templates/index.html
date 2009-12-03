@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Index{% endblock %}
 {% block content %}
-<h1>Page index <a class="int" href="/w/index.rss"><img src="/static/rss.png" alt="rss" width="16" height="16"/></a></h1>
+<ul id="tabs">
+<li class="active"><a href="/w/index">View</a></li>
+<li><a href="/w/index.rss">RSS</a></li>
+</ul>
+<div id="pb" class="wtabs">
+
+<h1>Page index</h1>
 
 {% if pages %}
   <ul>
@@ -15,4 +21,5 @@
 <p>Nothing to see here.</p>
 {% endif %}
 
+</div>
 {% endblock %}
