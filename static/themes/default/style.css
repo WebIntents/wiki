@@ -13,6 +13,9 @@ h1:first-letter {
 a, #pb a.int {
   color: #0645ad; /* #0b0080 */
 }
+#pb img {
+  margin-right: 1em;
+}
 
 
 #sidebar {
@@ -111,7 +114,7 @@ a, #pb a.int {
   border-bottom: none;
 }
 
-#page, #footer {
+#page {
   margin-left: 220px;
 }
 

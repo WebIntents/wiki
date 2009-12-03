@@ -19,7 +19,7 @@
         <div class="top">
           <div class="login">
             {% if user %}
-              <strong><a href="/users/{{ user.nickname|escape }}"></a>{{ user.nickname }}</a></strong>
+              <strong><a href="/users/{{ user.nickname|escape }}">{{ user.nickname }}</a></strong>
               <a href="/w/index">Index</a>
               <a href="/w/changes">Changes</a>
               {% if is_admin %}
