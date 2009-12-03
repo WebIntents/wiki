@@ -188,8 +188,7 @@ class ViewHandler(BaseRequestHandler):
     if self.settings.data.pread:
       template_values['page']['pread'] = True
 
-    logging.debug(template_values['page']['pread'])
-    if not template_values['page']['pread']:
+    if 'pread' not in template_values['page'] or not template_values['page']['pread']:
       self.acl.check_read_pages()
 
     self.generate('view.html', template_values)
