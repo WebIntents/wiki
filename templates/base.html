@@ -64,7 +64,7 @@
 		{% block footer %}
       <div id="footer">
         {% if page.updated %}
-        <p id="pm">This page was last edited {% if page.author %}by {{ page.author }}{% else %}anonymously{% endif %} on {{ page.updated|date:"d.m.y" }} at {{ page.updated|date:"H:i" }}.</p>
+        <p id="pm">This page was last edited {% if page.author %}by <a href="/users/{{ page.author|escape}}">{{ page.author }}</a>{% else %}anonymously{% endif %} on {{ page.updated|date:"d.m.y" }} at {{ page.updated|date:"H:i" }}.</p>
         {% endif %}
         {% if settings.footer %}
           {{ settings.footer }}

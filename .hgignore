@@ -1,4 +1,2 @@
 syntax: glob
 *.sh
-*.orig
-*.pyc

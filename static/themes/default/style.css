@@ -183,3 +183,8 @@ table.c thead th {
   font-weight: normal;
   color: #444;
 }
+
+.hint {
+  border-bottom: dashed gray 1px;
+  cursor: help;
+}
