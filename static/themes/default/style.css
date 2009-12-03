@@ -118,7 +118,7 @@ a, #pb a.int {
   background: transparent url(lock.png) no-repeat center left;
 }
 
-#page {
+#page, #footer {
   margin-left: 220px;
 }
 
