@@ -169,7 +169,6 @@ class ViewHandler(BaseRequestHandler):
       return self.get_view(page_name)
 
   def get_view(self, page_name):
-    self.acl.check_read_pages()
     template_values = {}
 
     try:
@@ -183,11 +182,15 @@ class ViewHandler(BaseRequestHandler):
         },
         'body': '<h1>%s</h1><p>%s</p>' % (page_name, e.message),
         'offer_create': True,
-        'pread': True,
+        'pread': self.settings.data.pread,
       }
 
     if self.settings.data.pread:
       template_values['page']['pread'] = True
+
+    logging.debug(template_values['page']['pread'])
+    if not template_values['page']['pread']:
+      self.acl.check_read_pages()
 
     self.generate('view.html', template_values)
 
