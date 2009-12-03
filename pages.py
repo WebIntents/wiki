@@ -75,7 +75,7 @@ class wikifier:
       if page_name == page_title:
         page_title = parts[1]
       if parts[0] in self.interwiki:
-        return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], self.interwiki[parts[0]].replace('%s', urllib.quote(parts[1])), page_title)
+        return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], self.interwiki[parts[0]].replace('%s', urllib.quote(parts[1].encode('utf8'))), page_title)
       else:
         return '<a title="Unsupported interwiki was used (%s)." class="iw-broken">%s</a>' % (urllib.quote(parts[0]), page_title)
 
