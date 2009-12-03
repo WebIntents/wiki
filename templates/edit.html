@@ -24,7 +24,7 @@
 
 Page text.{% endif %}{% endif %}</textarea>
         {% if not settings.pread %}
-        <p><label><input type="checkbox" value="True"{% if current_version.pread %} checked="checked"{% endif %} name="pread"/>Let the public read this page</label></p>
+        <p><label><input type="checkbox" value="1"{% if page.pread %} checked="checked"{% endif %} name="pread"/>Let the public read this page</label></p>
         {% endif %}
         <p class="extl">You can use HTML and <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown</a> for formatting, <a class="int" href="/w/interwiki" target="_blank">interwikis</a> for linking.</p>
         <input type="submit" value="Save Changes"/> or <a class="int" href="{{ page.title }}">cancel</a>

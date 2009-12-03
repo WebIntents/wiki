@@ -190,6 +190,9 @@ table.c thead th {
   font-weight: normal;
   color: #444;
 }
+table.c a.public {
+  font-weight: bold;
+}
 
 .hint {
   border-bottom: dashed gray 1px;

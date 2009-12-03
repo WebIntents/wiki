@@ -183,15 +183,11 @@ class ViewHandler(BaseRequestHandler):
         },
         'body': '<h1>%s</h1><p>%s</p>' % (page_name, e.message),
         'offer_create': True,
+        'pread': True,
       }
 
-    """
-    links = '<a class="int" href="/w/history?page=%s">History</a>' % (page_name.replace('_', ' '))
-    if self.acl.can_edit_pages():
-      links = '<a class="int" href="/w/edit?page=%s">Edit</a> %s' % (page_name.replace('_', ' '), links)
-
-    page['body'] = page['body'].replace('</h1>', '<small>' + links + '</small></h1>')
-    """
+    if self.settings.data.pread:
+      template_values['page']['pread'] = True
 
     self.generate('view.html', template_values)
 
@@ -238,6 +234,10 @@ class EditHandler(BaseRequestHandler):
     page.author = self.get_wiki_user(True)
     if not page.author and users.get_current_user():
       raise Exception('Could not determine who you are.')
+    if self.request.get('pread'):
+      page.pread = True
+    else:
+      page.pread = False
     pages.put(page)
 
     # Remove old page from cache.

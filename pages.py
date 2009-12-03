@@ -89,6 +89,7 @@ class cache:
         'author': None,
         'author_email': None,
         'updated': page.updated,
+        'pread': page.pread,
       }
       if page.author:
         value['author'] = page.author.wiki_user.nickname()
