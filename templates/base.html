@@ -2,7 +2,10 @@
     <head>
       <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
       <link rel="stylesheet" type="text/css" href="/static/themes/default/style.css"/>
+      <!--
       <link rel="shortcut icon" href="/static/favicon.ico" /> 
+      -->
+      <link rel="shortcut icon" href="/static/logo.png" type="image/png" /> 
       <link rel="alternate" type="application/rss+xml" title="New Pages" href="/w/index.rss" /> 
       {% block heads %}{% endblock %}
       <title>{% block title %}{% endblock %}</title>
@@ -16,7 +19,7 @@
         <div class="top">
           <div class="login">
             {% if user %}
-              <strong>{{ user.nickname }}</strong>
+              <strong><a href="/users/{{ user.nickname|escape }}"></a>{{ user.nickname }}</a></strong>
               <a href="/w/index">Index</a>
               <a href="/w/changes">Changes</a>
               {% if is_admin %}
