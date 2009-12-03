@@ -107,6 +107,7 @@ class BaseRequestHandler(webapp.RequestHandler):
 
     # We'll display the user name if available and the URL on all pages
     values = {'user': user, 'log_in_out_url': log_in_out_url, 'editing': self.request.get('edit'), 'is_admin': users.is_current_user_admin() }
+    values['sidebar'] = pages.cache.get('sidebar', create=True)
     values.update(template_values)
 
     logging.debug(values)
