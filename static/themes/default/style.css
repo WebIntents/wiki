@@ -7,9 +7,6 @@ body {
   background-color: #f3f3f3;
 }
 
-h1:first-letter {
-  text-transform: uppercase;
-}
 a, #pb a.int {
   color: #0645ad; /* #0b0080 */
 }
@@ -80,12 +77,17 @@ a, #pb a.int {
   background: none;
   padding: 0;
 }
-#pb h1 {
-  font-size: 18pt;
+#pb h1, #pb h2 {
   font-weight: normal;
   margin: 0;
   padding: 15px 0 6px;
   border-bottom: solid 1px #ddd;
+}
+#pb h1 {
+  font-size: 18pt;
+}
+#pb h2 {
+  font-size: 16pt;
 }
 
 #tabs {
