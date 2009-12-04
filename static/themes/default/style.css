@@ -21,6 +21,14 @@ a, #pb a.int {
   margin: .5em 1em .5em 0;
   padding: 4px 10px 4px 0;
 }
+#pb blockquote {
+  font-style: italic;
+  margin-left: 0;
+  padding-left: 1em;
+}
+#pb li blockquote {
+  padding-left: 0;
+}
 
 
 #sidebar {
