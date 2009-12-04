@@ -11,7 +11,15 @@ a, #pb a.int {
   color: #0645ad; /* #0b0080 */
 }
 #pb img {
-  margin-right: 1em;
+  background-color: white;
+}
+#pb img[align=right] {
+  margin: .5em 0 .5em 1em;
+  padding: 4px 0 4px 10px;
+}
+#pb img[align=left] {
+  margin: .5em 1em .5em 0;
+  padding: 4px 10px 4px 0;
 }
 
 
