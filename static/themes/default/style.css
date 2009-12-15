@@ -29,6 +29,9 @@ a, #pb a.int {
 #pb li blockquote {
   padding-left: 0;
 }
+#pb hr {
+  clear: both;
+}
 
 
 #sidebar {
