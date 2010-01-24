@@ -99,6 +99,10 @@ a {
 #pb.wsb {
   margin-left: 230px;
 }
+#pb em {
+  font-style: normal;
+  background-color: #80ff80;
+}
 #pb a {
   /*
   background: url(/static/external.png) no-repeat 100% 50%;
