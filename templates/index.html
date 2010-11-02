@@ -11,11 +11,11 @@
 
 {% if pages %}
   <ul>
-    {% for page in pages %}
+    {% for page in pages %}{% if page.redirect %}{% else %}
     <li>
       <a class="int" href="{{ page.title|pageurl }}">{{ page.title }}</a>
     </li>
-    {% endfor %}
+    {% endif %}{% endfor %}
   </ul>
 {% else %}
 <p>Nothing to see here.</p>
