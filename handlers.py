@@ -450,12 +450,9 @@ class EditHandler(BaseRequestHandler):
                 page.pread = True
             elif options.has_key('private') and options['private'] == 'yes':
                 page.pread = False
-            if options.has_key('title'):
-                page.title = options['title']
-            else:
-                r = re.search('<h1>(.*)</h1>', markdown(options['text']))
-                if r:
-                    page.title = r.group(1).strip()
+            r = re.search('<h1>(.*)</h1>', markdown(options['text']))
+            if r:
+                page.title = r.group(1).strip()
 
             page.put()
         self.redirect('/' + urllib.quote(page.title.replace(' ', '_').encode('utf-8')))
