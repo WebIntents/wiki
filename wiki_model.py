@@ -28,13 +28,21 @@ class WikiUser(db.Model):
   user_feed = db.StringProperty()
 
 class WikiContent(db.Model):
+  """
+  Stores current versions of pages.
+  """
   title = db.StringProperty(required=True)
   body = db.TextProperty(required=False)
   author = db.ReferenceProperty(WikiUser)
   updated = db.DateTimeProperty(auto_now_add=True)
   pread = db.BooleanProperty()
+  # The name of the page that this one redirects to.
+  redirect = db.StringProperty()
 
 class WikiRevision(db.Model):
+  """
+  Stores older revisions of pages.
+  """
   wiki_page = db.ReferenceProperty(WikiContent)
   revision_body = db.TextProperty(required=True)
   author = db.ReferenceProperty(WikiUser)

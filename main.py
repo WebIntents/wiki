@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# vim: set ts=2 sts=2 sw=2 et:
 #
 # Copyright 2008 Google Inc. All Rights Reserved.
 #
@@ -67,6 +66,30 @@ _ADMIN_EMAIL='justin.forest@gmail.com'
 _SETTINGS = {
 }
 
+
+def get_page_options(text):
+    """
+    Parses special fields in page header.  The header is separated by a line
+    with 3 dashes.  It contains lines of the "key: value" form, which define
+    page options.
+
+    Returns a dictionary with such options.  Page text is available as option
+    named "text".
+    """
+    if type(text) != unicode:
+        raise TypeError('get_page_options() expects Unicode text, not "%s".' % text.__class__.__name__)
+    options = dict()
+    text = text.replace('\r\n', '\n') # fix different EOL types
+    parts = text.split(u'\n---\n', 1)
+    if len(parts) > 1:
+        for line in parts[0].split('\n'):
+            kv = line.split(':', 1)
+            if len(kv) == 2:
+                options[kv[0].strip()] = kv[1].strip()
+    options['text'] = parts[-1]
+    return options
+
+
 class ViewRevisionListHandler(BaseRequestHandler):
 
     def get(self, page_title):
@@ -99,6 +122,38 @@ class ViewDiffHandler(BaseRequestHandler):
                                                              })
 
 
+class PageHandler(BaseRequestHandler):
+    """
+    Renders and displays the requested page.
+    """
+    def get(self, page_name):
+        vars = self._get_page(urllib.unquote(page_name).decode('utf-8').replace('_', ' '))
+        logging.info('GET request: %s' % vars)
+        self.generate('view.html', vars)
+
+    def _get_page(self, title, loop=10):
+        page = WikiContent.gql('WHERE title = :1', title).get()
+        if page is None:
+            page = WikiContent(title=title)
+        result = {}
+        while page.redirect and loop and not 'noredir' in self.request.arguments():
+            result['page_source'] = page.title
+            logging.info('Redirecting from "%s" to "%s"' % (page.title, page.redirect))
+            page = WikiContent.gql('WHERE title = :1', page.redirect).get() or WikiContent(title=page.redirect)
+            loop -= 1
+
+        result.update({
+            'page_title': page.title,
+            'page_exists': page.is_saved(),
+            'page_options': {},
+        })
+        if page.is_saved():
+            result['page_options'] = get_page_options(unicode(page.body))
+        if result['page_options'].has_key('text'):
+            result['page_text'] = pages.wikifier(self.settings).wikify(result['page_options']['text'])
+        return result
+
+
 class ViewHandler(BaseRequestHandler):
   def get_page_content(self, page_title, revision_number=1):
     """When memcache lookup fails, we want to query the information from
@@ -106,6 +161,7 @@ class ViewHandler(BaseRequestHandler):
        simply return empty strings
     """
     # Find the wiki entry
+    logging.info('LALALA')
     entry = WikiContent.gql('WHERE title = :1', self.get_page_name(page_title)).get()
 
     if entry:
@@ -123,6 +179,8 @@ class ViewHandler(BaseRequestHandler):
       author_email = urllib.quote(requested_version.author.wiki_user.email())
       author_nickname = requested_version.author.wiki_user.nickname()
       version_date = requested_version.created
+      # Process redirects.
+      logging.info(body)
       # Replace all wiki words with links to those wiki pages
       wiki_body = pages.wikifier(self.settings).wikify(body)
       pread = requested_version.pread
@@ -142,7 +200,7 @@ class ViewHandler(BaseRequestHandler):
        returns the information.  If not, it calls get_page_content, gets the
        page content from the datastore and sets the memcache with that info
     """
-    page_content = memcache.get(page_title)
+    page_content = None # memcache.get(page_title)
     if not page_content:
       page_content = self.get_page_content(page_title, revision_number)
 
@@ -231,6 +289,15 @@ class EditHandler(BaseRequestHandler):
       page.pread = True
     else:
       page.pread = False
+
+    options = get_page_options(unicode(page.body))
+    if options.has_key('redirect'):
+        page.redirect = options['redirect']
+    if options.has_key('public') and options['public'] == 'yes':
+        page.pread = True
+    elif options.has_key('private') and options['private'] == 'yes':
+        page.pread = False
+
     pages.put(page)
 
     # Remove old page from cache.
@@ -528,7 +595,7 @@ _WIKI_URLS = [('/', ViewHandler),
               ('/w/settings', SettingsHandler),
               ('/robots.txt', RobotsHandler),
               ('/sitemap.xml', SitemapHandler),
-              ('/(.+)', ViewHandler)
+              ('/(.+)', PageHandler)
               ]
 
 def main():
