@@ -38,6 +38,8 @@ class WikiContent(db.Model):
   pread = db.BooleanProperty()
   # The name of the page that this one redirects to.
   redirect = db.StringProperty()
+  # Labels used by this page.
+  labels = db.StringListProperty()
 
   @classmethod
   def get_by_key(cls, key):

@@ -240,3 +240,9 @@ a.iw-broken {
   background: url(iw-linux.png) no-repeat 100% 50%;
   padding-right: 16px;
 }
+#page .categories {
+  border: solid 1px #ddd;
+  padding: 2px 4px;
+  display: inline-block;
+  background-color: #f3f3f3;
+}

@@ -163,6 +163,10 @@ def can_edit(page=None):
     return False
 
 
+def pagesort(pages):
+    return sorted(pages, cmp=lambda a, b: cmp(a.title.lower(), b.title.lower()))
+
+
 def wikify(text):
     """
     Covnerts Markdown text into HTML.  Supports interwikis.
@@ -187,6 +191,11 @@ def _wikify_one(pat):
         parts = page_name.split(':', 2)
         if page_name == page_title:
             page_title = parts[1]
+        if parts[0] == 'List':
+            logging.debug('Inserting a list of pages labelled with "%s".' % parts[1])
+            pages = model.WikiContent.gql('WHERE labels = :1', parts[1]).fetch(100)
+            text = u'\n'.join(['- <a class="int" href="/%s">%s</a>' % (p.title, p.title) for p in pagesort(pages)])
+            return text
         iwlink = get_settings(u'interwiki-' + parts[0])
         if iwlink:
             return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], iwlink.replace('%s', urllib.quote(parts[1].encode('utf-8'))), page_title)
@@ -450,6 +459,10 @@ class EditHandler(BaseRequestHandler):
                 page.pread = True
             elif options.has_key('private') and options['private'] == 'yes':
                 page.pread = False
+            if options.has_key('labels'):
+                page.labels = options['labels']
+            else:
+                page.labels = []
             r = re.search('<h1>(.*)</h1>', markdown(options['text']))
             if r:
                 page.title = r.group(1).strip()
@@ -498,7 +511,7 @@ class IndexHandler(BaseRequestHandler):
         if not can_read():
             raise ForbiddenException(u'You are not allowed to see this page.')
         self.generate('index.html', {
-            'pages': sorted(model.WikiContent.all().order('title').fetch(1000), cmp=lambda a, b: cmp(a.title.lower(), b.title.lower())),
+            'pages': pagesort(model.WikiContent.all().order('title').fetch(1000)),
         })
 
 
