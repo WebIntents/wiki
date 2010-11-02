@@ -194,7 +194,7 @@ def _wikify_one(pat):
         if parts[0] == 'List':
             logging.debug('Inserting a list of pages labelled with "%s".' % parts[1])
             pages = model.WikiContent.gql('WHERE labels = :1', parts[1]).fetch(100)
-            text = u'\n'.join(['- <a class="int" href="/%s">%s</a>' % (p.title, p.title) for p in pagesort(pages)])
+            text = u'\n'.join(['- <a class="int" href="%s">%s</a>' % (filters.pageurl(p.title), p.title) for p in pagesort(pages)])
             return text
         iwlink = get_settings(u'interwiki-' + parts[0])
         if iwlink:
