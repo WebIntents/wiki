@@ -10,14 +10,14 @@
 {% endblock %}
 {% block content %}
   <ul id="tabs">
-    <li><a href="/{{ page.title|escape }}">View</a></li>
-    <li class="active"><a href="/w/edit?page={{ page.title|escape }}">Edit</a></li>
-    <li><a href="/w/history?page={{ page.title|escape }}">History</a></li>
+    <li><a href="{{ page.title|pageurl }}">View</a></li>
+    <li class="active"><a href="/w/edit?page={{ page.title|uurlencode }}">Edit</a></li>
+    <li><a href="/w/history?page={{ page.title|uurlencode }}">History</a></li>
   </ul>
   <div class="wtabs" id="pb">
     <h1>{% if page.title %}{{ page.title|escape }}{% else %}New page{% endif %}</h1>
     <form action="/w/edit" method="POST" class="markdown">
-        <input type="hidden" name="name" value="{{ page.title|escape }}"/>
+        <input type="hidden" name="name" value="{{ page.title|uurlencode }}"/>
         <textarea rows="20" cols="80" name="body" id="editor">{% if page.body %}{{ page.body }}{% else %}{% if page.title %}# {{ page.title }}
 
 **{{ page.title }}** is something this page explains.{% else %}# Page title
