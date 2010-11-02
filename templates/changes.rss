@@ -5,7 +5,7 @@
 <title>{{ settings.title }} Updates</title>
 <description>Recent changes in {{ settings.title }}</description>
 <link>{{ base }}/w/changes</link>
-{% for page in changes %}
+{% for page in pages %}
 <item>
 <title>{{ page.title }}</title>
 <link>{{ base }}/{{ page.title }}</link>

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# vim: set ts=2 sts=2 sw=2 et:
 #
 # Copyright 2008 Google Inc. All Rights Reserved.
 #
@@ -27,6 +26,7 @@ class WikiUser(db.Model):
   wiki_user_picture = db.BlobProperty()
   user_feed = db.StringProperty()
 
+
 class WikiContent(db.Model):
   """
   Stores current versions of pages.
@@ -39,10 +39,16 @@ class WikiContent(db.Model):
   # The name of the page that this one redirects to.
   redirect = db.StringProperty()
 
+  @classmethod
+  def get_by_key(cls, key):
+    return db.get(db.Key(key))
+
+
 class WikiRevision(db.Model):
   """
   Stores older revisions of pages.
   """
+  title = db.StringProperty()
   wiki_page = db.ReferenceProperty(WikiContent)
   revision_body = db.TextProperty(required=True)
   author = db.ReferenceProperty(WikiUser)

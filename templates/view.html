@@ -1,16 +1,19 @@
 {% extends "base.html" %}
-{% block heads %}{% if page_exists %}
-  <link rel="alternate" type="application/x-wiki" href="/w/edit?page={{ page.title }}"/>
+{% block heads %}{% if can_edit %}
+  <link rel="alternate" type="application/x-wiki" href="/w/edit?page={{ page_title|escape }}"/>
 {% endif %}{% endblock %}
 {% block content %}
-<ul id="tabs"{% if page.pread %}{% else %} class="locked"{% endif %}>
-  <li class="active"><a class="view" href="/{{ page.title }}">View</a></li>
-  <li><a href="/w/edit?page={{ page.title|escape }}">Edit</a></li>
-  <li><a href="/w/history?page={{ page.title|escape }}">History</a></li>
+<ul id="tabs"{% if public_page %}{% else %} class="locked"{% endif %}>
+  <li class="active"><a class="view" href="/{{ page_title }}">View</a></li>
+  {% if can_edit %}<li><a href="/w/edit?page={{ page_title|escape }}">Edit</a></li>{% endif %}
+  <li><a href="/w/history?page={{ page_title|escape }}">History</a></li>
 </ul>
 <div class="wtabs extl" id="pb">
   {% if page_exists %}
     {{ page_text }}
+    {% if page_options.labels %}
+      <p class="categories">Categories: {% for label in page_options.labels %}{% if forloop.first %}{% else %}, {% endif %}<a class="int" href="{{ label|labelurl }}">{{ label|escape }}</a>{% endfor %}.</p>
+    {% endif %}
   {% else %}
     <h1>{{ page_title }}</h1>
     <p>This page does not exist.</p>

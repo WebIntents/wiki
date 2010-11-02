@@ -15,7 +15,7 @@
     <li><a href="/w/history?page={{ page.title|escape }}">History</a></li>
   </ul>
   <div class="wtabs" id="pb">
-    <h1>{% if page.title %}{{ page.title }}{% else %}New page{% endif %}</h1>
+    <h1>{% if page.title %}{{ page.title|escape }}{% else %}New page{% endif %}</h1>
     <form action="/w/edit" method="POST" class="markdown">
         <input type="hidden" name="name" value="{{ page.title|escape }}"/>
         <textarea rows="20" cols="80" name="body" id="editor">{% if page.body %}{{ page.body }}{% else %}{% if page.title %}# {{ page.title }}
@@ -24,10 +24,10 @@
 
 Page text.{% endif %}{% endif %}</textarea>
         {% if not settings.pread %}
-        <p><label><input type="checkbox" value="1"{% if page.pread %} checked="checked"{% endif %} name="pread"/>Let the public read this page</label></p>
+        <p><label><input type="checkbox" value="1" name="delete"/>Delete this page</label></p>
         {% endif %}
         <p class="extl">You can use HTML and <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown</a> for formatting, <a class="int" href="/w/interwiki" target="_blank">interwikis</a> for linking.</p>
-        <input type="submit" value="Save Changes"/> or <a class="int" href="{{ page.title }}">cancel</a>
+        <input type="submit" value="Save Changes"/> or <a class="int" href="{{ page.title|pageurl }}">cancel</a>
     </form>
   </div>
 {% endblock %}

@@ -13,7 +13,7 @@
   <ul>
     {% for page in pages %}
     <li>
-      <a class="int" href="{{ page.uri }}">{{ page.name }}</a>
+      <a class="int" href="{{ page.title|pageurl }}">{{ page.title }}</a>
     </li>
     {% endfor %}
   </ul>

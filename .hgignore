@@ -1,3 +1,4 @@
 syntax: glob
-*.sh
 *.pyc
+*.sh
+config.py
