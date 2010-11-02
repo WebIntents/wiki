@@ -430,14 +430,15 @@ class EditHandler(BaseRequestHandler):
         })
 
     def post(self):
-        page = self._load_page(self.request.get('name'))
+        page = self._load_page(urllib.unquote(str(self.request.get('name'))).decode('utf-8'))
 
         # Save in the archive.
         if page.is_saved():
             model.WikiRevision(title=page.title, revision_body=page.body, author=page.author, created=page.updated).put()
 
         if self.request.get('delete'):
-            page.delete()
+            if page.is_saved():
+                page.delete()
         else:
             page.body = self.request.get('body')
             page.author = self.get_wiki_user()
