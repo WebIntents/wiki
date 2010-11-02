@@ -4,7 +4,7 @@
 {% endif %}{% endblock %}
 {% block content %}
 <ul id="tabs"{% if public_page %}{% else %} class="locked"{% endif %}>
-  <li class="active"><a class="view" href="/{{ page_title }}">View</a></li>
+  <li class="active"><a class="view" href="{{ page_title|pageurl }}">View</a></li>
   {% if can_edit %}<li><a href="/w/edit?page={{ page_title|escape }}">Edit</a></li>{% endif %}
   <li><a href="/w/history?page={{ page_title|escape }}">History</a></li>
 </ul>
