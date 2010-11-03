@@ -121,6 +121,9 @@ a, #pb a.int {
   display: inline-block;
   margin: 0;
   padding: 0 10px;
+  /* fixes for ie, thanks to googars@gmail.com */
+  zoom: 1;
+  *display: inline;
 }
 #tabs li a {
   margin: 0;
