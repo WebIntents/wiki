@@ -528,11 +528,15 @@ class EditHandler(BaseRequestHandler):
 
         # Save in the archive.
         if page.is_saved():
-            model.WikiRevision(title=page.title, revision_body=page.body, author=page.author, created=page.updated).put()
+            backup = model.WikiRevision(title=page.title, revision_body=page.body, author=page.author, created=page.updated)
+        else:
+            backup = None
 
         if self.request.get('delete'):
             if page.is_saved():
                 page.delete()
+                if backup:
+                    backup.put()
         else:
             page.body = self.request.get('body')
             page.author = self.get_wiki_user(create=True)
@@ -555,6 +559,8 @@ class EditHandler(BaseRequestHandler):
             if r:
                 page.title = r.group(1).strip()
 
+            if backup and backup.revision_body != page.body:
+                backup.put()
             page.put()
 
         self._flush_cache(page.title)
