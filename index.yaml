@@ -19,11 +19,5 @@ indexes:
 - kind: WikiRevision
   properties:
   - name: title
-  - name: version_number
-    direction: desc
-
-- kind: WikiRevision
-  properties:
-  - name: wiki_page
-  - name: version_number
+  - name: created
     direction: desc

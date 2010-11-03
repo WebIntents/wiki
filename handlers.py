@@ -5,6 +5,7 @@
 __author__ = 'justin.forest@gmail.com'
 
 # Python imports.
+import datetime
 import logging
 import os
 import re
@@ -502,7 +503,7 @@ class HistoryHandler(BaseRequestHandler):
     def get(self):
         page_title = self.request.get('page').decode('utf-8')
         self._check_access(page_title)
-        history = model.WikiRevision.gql('WHERE title = :1 ORDER BY version_number DESC', page_title).fetch(100)
+        history = model.WikiRevision.gql('WHERE title = :1 ORDER BY created DESC', page_title).fetch(100)
         self.generate('history.html', { 'page_title': page_title, 'revisions': history })
 
     def _check_access(self, page_name):
@@ -536,6 +537,7 @@ class EditHandler(BaseRequestHandler):
             page.body = self.request.get('body')
             page.author = self.get_wiki_user(create=True)
             page.links = self._get_linked_page_names(page.body)
+            page.updated = datetime.datetime.now()
             logging.debug('%s links to: %s' % (page.title, page.links))
 
             options = parse_page_options(unicode(page.body))
