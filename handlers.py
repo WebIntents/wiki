@@ -321,8 +321,7 @@ class BaseRequestHandler(webapp.RequestHandler):
 
         # We'll display the user name if available and the URL on all pages
         values = {
-            'user_name': user.nickname(),
-            'user_email': user.email(),
+            'user': user,
             'log_in_out_url': log_in_out_url,
             'is_admin': users.is_current_user_admin(),
         }
