@@ -11,3 +11,6 @@ handlers:
   upload: static/favicon.ico
 - url: .*
   script: handlers.py
+
+builtins:
+- datastore_admin: on
