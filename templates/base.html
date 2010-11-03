@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
       <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
       <base href="{{ base }}"/>
@@ -27,9 +28,9 @@
               {% if is_admin %}
                 <a href="/w/users">Users</a>
               {% endif %}
-                <a href="{{log_in_out_url}}">Sign out</a>
+                <a href="{{ log_in_out_url|escape }}">Sign out</a>
             {% else %}
-              <div align="right"><a href="{{log_in_out_url}}">Log in</a></div>
+              <div align="right"><a href="{{ log_in_out_url|escape }}">Log in</a></div>
             {% endif %}
           </div>
         </div>
