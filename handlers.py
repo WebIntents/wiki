@@ -75,7 +75,7 @@ def get_settings(key=None, default_value=''):
             "start_page: Welcome",
             "admin_email: nobody@example.com",
             "sidebar: gaewiki:sidebar",
-            "footer_page: gaewiki:footer",
+            "footer: gaewiki:footer",
             "open-reading: yes",
             "open-editing: no",
             "editors: user1@example.com, user2@example.com",
@@ -524,6 +524,7 @@ class EditHandler(BaseRequestHandler):
 
     def post(self):
         page = self._load_page(urllib.unquote(str(self.request.get('name'))).decode('utf-8'))
+        old_title = page.title
 
         # Save in the archive.
         if page.is_saved():
@@ -557,6 +558,7 @@ class EditHandler(BaseRequestHandler):
             page.put()
 
         self._flush_cache(page.title)
+        self._flush_cache(old_title)
         self.redirect(filters.pageurl(page.title))
 
     def _load_page(self, page_title):
