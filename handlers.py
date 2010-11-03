@@ -452,7 +452,7 @@ class EditHandler(BaseRequestHandler):
                 page.delete()
         else:
             page.body = self.request.get('body')
-            page.author = self.get_wiki_user()
+            page.author = self.get_wiki_user(create=True)
             page.links = self._get_linked_page_names(page.body)
             logging.debug('%s links to: %s' % (page.title, page.links))
 
