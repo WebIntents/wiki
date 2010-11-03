@@ -232,6 +232,13 @@ class BaseRequestHandler(webapp.RequestHandler):
     It defines the generate method, which renders a Django template
     in response to a web request
     """
+    # Cache control, can be overridden in subclasses.
+    cache_page = False
+    cache_data = True
+    # Default template used by generate().
+    template = 'base.html'
+    # Default content type for generate().
+    content_type = 'text/html'
 
     def handle_exception(self, e, debug_mode):
         if not issubclass(e.__class__, HTTPException):
@@ -313,7 +320,8 @@ class BaseRequestHandler(webapp.RequestHandler):
 
         # We'll display the user name if available and the URL on all pages
         values = {
-            'user': user,
+            'user_name': user.nickname(),
+            'user_email': user.email(),
             'log_in_out_url': log_in_out_url,
             'is_admin': users.is_current_user_admin(),
         }
@@ -337,6 +345,70 @@ class BaseRequestHandler(webapp.RequestHandler):
         # Respond to the request by rendering the template
         self.response.out.write(result)
 
+    def get(self, *args):
+        """
+        Adds transparent caching to GET request handlers.  Real work is done by
+        the _real_get() method.  Uses the URL as the cache key.  Cache hits and
+        misses are logged to the DEBUG facility.
+        """
+        if not hasattr(self, '_real_get'):
+            logging.error('Class %s does not define the _real_get() method, sending 501.' % self.__class__.__name__)
+            self.error(501)
+        else:
+            cache_key = 'page#' + self.request.path
+            cached = memcache.get(self.request.path)
+            use_cache = True
+            if not self.cache_page:
+                use_cache = False
+                logging.debug('Cache MIS for \"%s\": disabled by class %s' % (cache_key, self.__class__.__name__))
+            if use_cache and type(cached) != tuple:
+                use_cache = False
+                logging.debug('Cache MIS for \"%s\"' % cache_key)
+            if use_cache and users.is_current_user_admin() and 'nocache' in self.request.arguments():
+                logging.debug('Cache MIS for \"%s\": requested by admin' % cache_key)
+                use_cache = False
+            if not use_cache:
+                self._real_get(*args)
+                cached = (self.response.headers, self.response.out, )
+                memcache.set(self.request.path, cached)
+            else:
+                logging.debug('Cache HIT for \"%s\"' % cache_key)
+            self.response.headers = cached[0]
+            self.response.out = cached[1]
+
+    def _real_get(self, *args):
+        """
+        Calls the _get_data() method, which must return a dictionary to be used
+        with render().  The dictionary must contain only simple data, not
+        objects or models, otherwise caching will break up.
+        """
+        if not hasattr(self, '_get_data'):
+            logging.error('Class %s does not define the _get_data() method, sending 501.' % self.__class__.__name__)
+            self.error(501)
+        else:
+            cache_key = 'data#' + self.request.path
+            data = memcache.get(cache_key)
+            use_cache = True
+            if type(data) != dict:
+                use_cache = False
+                logging.debug('Cache MIS for "%s"' % cache_key)
+            elif not self.cache_data:
+                use_cache = False
+                logging.debug('Cache IGN for "%s": disabled for class %s.' % (cache_key, self.__class__.__name__))
+            elif users.is_current_user_admin() and 'nocache' in self.request.arguments():
+                use_cache = False
+                logging.debug('Cache IGN for "%s": requested by admin.' % (cache_key))
+            if not use_cache:
+                data = self._get_data(*args)
+                if type(data) != dict:
+                    logging.warning('%s._get_data() returned something other than a dictionary (%s), not caching.' % (self.__class__.__name__, data.__class__.__name__))
+                else:
+                    memcache.set(cache_key, data)
+            else:
+                logging.debug('Cache HIT for "%s"' % cache_key)
+                # logging.debug(data)
+            self.generate(self.template, data)
+
     def _get_sidebar(self):
         page_name = get_settings('sidebar', 'gaewiki:sidebar')
         return self._get_page_contents(page_name, u'<a href="/"><img src="/static/logo.png" width="186" alt="logo" height="167"/></a>\n\nThis is a good place for a brief introduction to your wiki, a logo and such things.\n\n[Edit this text](/w/edit?page=%s)' % page_name)
@@ -356,14 +428,23 @@ class BaseRequestHandler(webapp.RequestHandler):
             text = re.sub('<h1>.*</h1>\s*', '', text) # remove the header
             return text.strip()
 
+    def _flush_cache(self, page_name):
+        """
+        Removes a page from both page and data cache.
+        """
+        page_url = filters.pageurl(page_name)
+        memcache.delete('data#' + page_url)
+        memcache.delete('page#' + page_url)
+
 
 class PageHandler(BaseRequestHandler):
+    template = 'view.html'
+
     """
     Renders and displays the requested page.
     """
-    def get(self, page_name):
-        vars = self._get_page(urllib.unquote(page_name).decode('utf-8').replace('_', ' '))
-        self.generate('view.html', vars)
+    def _get_data(self, page_name):
+        return self._get_page(urllib.unquote(page_name).decode('utf-8').replace('_', ' '))
 
     def _get_page(self, title, loop=10):
         """
@@ -393,7 +474,8 @@ class PageHandler(BaseRequestHandler):
             'public_page': get_settings('open-reading') == 'yes' or page.pread,
         })
         if page.author:
-            result['page_author'] = page.author.wiki_user
+            result['page_author'] = page.author.wiki_user.nickname()
+            result['page_author_email'] = page.author.wiki_user.email()
         if page.updated:
             result['page_updated'] = page.updated
         if page.is_saved():
@@ -472,7 +554,9 @@ class EditHandler(BaseRequestHandler):
                 page.title = r.group(1).strip()
 
             page.put()
-        self.redirect('/' + urllib.quote(page.title.replace(' ', '_').encode('utf-8')))
+
+        self._flush_cache(page.title)
+        self.redirect(filters.pageurl(page.title))
 
     def _load_page(self, page_title):
         """
