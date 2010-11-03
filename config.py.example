@@ -1,4 +1,3 @@
 # -*- coding: utf-8 -*-
 
 DEBUG = False
-SETTINGS_PAGE_NAME = 'gaewiki:settings'

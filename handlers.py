@@ -29,7 +29,9 @@ import model
 import config
 import filters
 
+# Some hard-coded settings.
 WIKI_WORD_PATTERN = re.compile('\[\[([^]|]+\|)?([^]]+)\]\]')
+SETTINGS_PAGE_NAME = 'gaewiki:settings'
 
 
 def parse_page_options(text):
