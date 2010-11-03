@@ -173,7 +173,7 @@ def wikify(text):
     """
     Covnerts Markdown text into HTML.  Supports interwikis.
     """
-    text, count = re.compile(config.WIKI_WORD_PATTERN).subn(_wikify_one, text)
+    text, count = WIKI_WORD_PATTERN.subn(_wikify_one, text)
     text = markdown(text).strip()
     return text
 
