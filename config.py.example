@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
 
 DEBUG = False
-ADMIN_EMAIL = 'john.doe@example.com'
 SETTINGS_PAGE_NAME = 'gaewiki:settings'
