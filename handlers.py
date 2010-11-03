@@ -26,7 +26,6 @@ from google.appengine.ext.webapp import template
 # Site imports.
 from markdown.markdown import markdown
 import model
-import config
 import filters
 
 # Some hard-coded settings.
@@ -64,13 +63,12 @@ def parse_page_options(text):
 
 def get_settings(key=None, default_value=''):
     """
-    Loads settings from the datastore, page specified in config.py,
-    SETTINGS_PAGE_NAME.  If the page does not exist, some reasonable defaults
-    are applied and saved.
+    Loads settings from the datastore, page specified in SETTINGS_PAGE_NAME.
+    If the page does not exist, some reasonable defaults are applied and saved.
     """
-    page = model.WikiContent.gql('WHERE title = :1', config.SETTINGS_PAGE_NAME).get()
+    page = model.WikiContent.gql('WHERE title = :1', SETTINGS_PAGE_NAME).get()
     if page is None:
-        page = model.WikiContent(title=config.SETTINGS_PAGE_NAME)
+        page = model.WikiContent(title=SETTINGS_PAGE_NAME)
         page.body = u'\n'.join([
             "title: My Wiki",
             "start_page: Welcome",
@@ -82,7 +80,7 @@ def get_settings(key=None, default_value=''):
             "editors: user1@example.com, user2@example.com",
             "interwiki-google: http://www.google.ru/search?sourceid=chrome&ie=UTF-8&q=%s",
             "interwiki-wp: http://en.wikipedia.org/wiki/Special:Search?search=%s",
-        ]) + '\n---\n# %s\n\nEdit me.' % config.SETTINGS_PAGE_NAME
+        ]) + '\n---\n# %s\n\nEdit me.' % SETTINGS_PAGE_NAME
         page.put()
     settings = parse_page_options(unicode(page.body))
     if key is None:
@@ -323,7 +321,7 @@ class BaseRequestHandler(webapp.RequestHandler):
         values['footer'] = self._get_footer()
         url = urlparse.urlparse(self.request.url)
         values['base'] = url[0] + '://' + url[1]
-        values['settings_page'] = config.SETTINGS_PAGE_NAME
+        values['settings_page'] = SETTINGS_PAGE_NAME
         values.update(template_values)
 
         logging.debug('Rendering %s with %s' % (self.request.path, values))
@@ -490,7 +488,7 @@ class EditHandler(BaseRequestHandler):
         Raises an exception if the current user can't edit this page.
         """
         allowed = can_edit(page)
-        if page.title == config.SETTINGS_PAGE_NAME:
+        if page.title == SETTINGS_PAGE_NAME:
             allowed = users.is_current_user_admin()
         if not allowed:
             if users.get_current_user() is None:
@@ -617,7 +615,7 @@ class BackLinksHandler(BaseRequestHandler):
 
 
 def main():
-    debug = config.DEBUG or os.environ.get('SERVER_SOFTWARE').startswith('Development/')
+    debug = os.environ.get('SERVER_SOFTWARE').startswith('Development/')
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
     webapp.template.register_template_library('filters')
