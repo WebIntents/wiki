@@ -40,6 +40,8 @@ class WikiContent(db.Model):
   redirect = db.StringProperty()
   # Labels used by this page.
   labels = db.StringListProperty()
+  # Pages that this one links to.
+  links = db.StringListProperty()
 
   @classmethod
   def get_by_key(cls, key):

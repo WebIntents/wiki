@@ -29,6 +29,8 @@ import model
 import config
 import filters
 
+WIKI_WORD_PATTERN = re.compile('\[\[([^]|]+\|)?([^]]+)\]\]')
+
 
 def parse_page_options(text):
     """
@@ -451,6 +453,8 @@ class EditHandler(BaseRequestHandler):
         else:
             page.body = self.request.get('body')
             page.author = self.get_wiki_user()
+            page.links = self._get_linked_page_names(page.body)
+            logging.debug('%s links to: %s' % (page.title, page.links))
 
             options = parse_page_options(unicode(page.body))
             if options.has_key('redirect'):
@@ -492,6 +496,21 @@ class EditHandler(BaseRequestHandler):
             else:
                 message = u'You are not allowed to edit this page.'
             raise ForbiddenException(message)
+
+    def _get_linked_page_names(self, text):
+        """
+        Returns names of pages that text links to.
+        """
+        names = []
+        for ref, tit in WIKI_WORD_PATTERN.findall(text):
+            if not ref:
+                ref = tit
+            else:
+                ref = ref.strip('|')
+            ref = ref.strip()
+            if ref not in names:
+                names.append(ref)
+        return sorted(names)
 
 
 class UsersHandler(BaseRequestHandler):
@@ -580,6 +599,21 @@ class SitemapHandler(BaseRequestHandler):
         self.response.out.write(content)
 
 
+class BackLinksHandler(BaseRequestHandler):
+    def get(self):
+        page_title = self.request.get('page').decode('utf-8')
+        page = model.WikiContent.gql('WHERE title = :1', page_title).get()
+        if page is None:
+            raise NotFoundException(u'No such page.')
+        if not can_read(page):
+            raise ForbiddenException(u'You are not allowed to view this page.')
+        links = model.WikiContent.gql('WHERE links = :1', page_title).fetch(100)
+        self.generate('backlinks.html', {
+            'page_title': page_title,
+            'page_links': [p.title for p in pagesort(links)],
+        })
+
+
 def main():
     debug = config.DEBUG or os.environ.get('SERVER_SOFTWARE').startswith('Development/')
     if debug:
@@ -587,6 +621,7 @@ def main():
     webapp.template.register_template_library('filters')
     wsgiref.handlers.CGIHandler().run(webapp.WSGIApplication([
       ('/', StartPageHandler),
+      ('/w/backlinks$', BackLinksHandler),
       ('/w/changes$', ChangesHandler),
       ('/w/changes\.rss$', ChangesFeedHandler),
       ('/w/edit$', EditHandler),

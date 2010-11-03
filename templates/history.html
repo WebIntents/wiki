@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ page_title }}{% endblock %}
+{% block title %}{{ page_title|escape }}{% endblock %}
 {% block content %}
 <ul id="tabs">
   <li><a href="{{ page_title|pageurl }}">View</a></li>
