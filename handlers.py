@@ -25,7 +25,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
 # Site imports.
-from markdown.markdown import markdown
+import markdown
 import model
 import filters
 
@@ -175,7 +175,7 @@ def wikify(text):
     Covnerts Markdown text into HTML.  Supports interwikis.
     """
     text, count = WIKI_WORD_PATTERN.subn(_wikify_one, text)
-    text = markdown(text).strip()
+    text = markdown.markdown(text, get_settings('markdown-extensions', [])).strip()
     return text
 
 
@@ -555,7 +555,8 @@ class EditHandler(BaseRequestHandler):
                 page.labels = options['labels']
             else:
                 page.labels = []
-            r = re.search('<h1>(.*)</h1>', markdown(options['text']))
+            # We only need the header, so we don't use extensions here.
+            r = re.search('<h1>(.*)</h1>', markdown.markdown(options['text']))
             if r:
                 page.title = r.group(1).strip()
 
