@@ -202,8 +202,6 @@ def _wikify_one(pat):
         iwlink = get_settings(u'interwiki-' + parts[0])
         if iwlink:
             return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], iwlink.replace('%s', urllib.quote(parts[1].encode('utf-8'))), page_title)
-        else:
-            return '<a title="Unsupported interwiki was used (%s)." class="iw-broken">%s</a>' % (urllib.quote(parts[0]), page_title)
 
     return '<a class="int" href="%s">%s</a>' % (filters.pageurl(page_name), page_title)
 
