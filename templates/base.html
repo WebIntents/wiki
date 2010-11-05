@@ -21,6 +21,9 @@
       {% for script in settings.extra_scripts %}
         <script type="text/javascript" src="{{ script|escape }}"></script>
       {% endfor %}
+      {% if settings.extra_init_script %}
+        <script type="text/javascript">{{ settings.extra_init_script }}</script>
+      {% endif %}
     </head>
     <body>
     	{% block header %}
