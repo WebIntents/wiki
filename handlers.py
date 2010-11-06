@@ -23,6 +23,7 @@ from google.appengine.api import urlfetch
 from google.appengine.api import xmpp
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
+from django.utils import simplejson
 
 # Site imports.
 import markdown
@@ -407,6 +408,12 @@ class BaseRequestHandler(webapp.RequestHandler):
                 # logging.debug(data)
             self.generate(self.template, data)
 
+    def _get_data(self, *args):
+        """
+        Default data provider for dummy classes that only have a static template.
+        """
+        return {}
+
     def _get_sidebar(self):
         page_name = get_settings('sidebar', 'gaewiki:sidebar')
         return self._get_page_contents(page_name, u'<a href="/"><img src="/static/logo.png" width="186" alt="logo" height="167"/></a>\n\nThis is a good place for a brief introduction to your wiki, a logo and such things.\n\n[Edit this text](/w/edit?page=%s)' % page_name)
@@ -425,6 +432,21 @@ class BaseRequestHandler(webapp.RequestHandler):
             text = wikify(options['text'])
             text = re.sub('<h1>.*</h1>\s*', '', text) # remove the header
             return text.strip()
+
+    def _get_linked_page_names(self, text):
+        """
+        Returns names of pages that text links to.
+        """
+        names = []
+        for ref, tit in WIKI_WORD_PATTERN.findall(text):
+            if not ref:
+                ref = tit
+            else:
+                ref = ref.strip('|')
+            ref = ref.strip()
+            if ref not in names:
+                names.append(ref)
+        return sorted(names)
 
     def _flush_cache(self, page_name):
         """
@@ -589,21 +611,6 @@ class EditHandler(BaseRequestHandler):
                 message = u'You are not allowed to edit this page.'
             raise ForbiddenException(message)
 
-    def _get_linked_page_names(self, text):
-        """
-        Returns names of pages that text links to.
-        """
-        names = []
-        for ref, tit in WIKI_WORD_PATTERN.findall(text):
-            if not ref:
-                ref = tit
-            else:
-                ref = ref.strip('|')
-            ref = ref.strip()
-            if ref not in names:
-                names.append(ref)
-        return sorted(names)
-
 
 class UsersHandler(BaseRequestHandler):
     """
@@ -706,6 +713,78 @@ class BackLinksHandler(BaseRequestHandler):
         })
 
 
+class DataExportHandler(BaseRequestHandler):
+    def get(self):
+        if not users.is_current_user_admin():
+            raise ForbiddenException(u'Only admins can access this page.')
+        data = {}
+        for page in model.WikiContent.all().fetch(1000):
+            data[page.title] = {
+                'author': page.author and page.author.wiki_user.email() or None,
+                'updated': page.updated.strftime('%Y-%m-%d %H:%M:%S'),
+                'body': page.body,
+            }
+
+        json = simplejson.dumps(data, indent=False)
+        self.response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        self.response.headers['Content-Disposition'] = 'attachment; filename="gaewiki-backup.json"'
+        self.response.out.write(json)
+
+
+class DataImportHandler(BaseRequestHandler):
+    template = 'import.html'
+
+    def _get_data(self):
+        if not users.is_current_user_admin():
+            raise ForbiddenException(u'Only admins can use this page.')
+        return {}
+
+    def post(self):
+        if not users.is_current_user_admin():
+            raise ForbiddenException(u'Only admins can use this page.')
+        data = simplejson.loads(self.request.get('file'))
+        if type(data) != dict:
+            raise Exception('Bad data.')
+        merge = self.request.get('merge') != ''
+        authors = {}
+        for title in data.keys():
+            current = model.WikiContent.gql('WHERE title = :1', title).get()
+            if current is None:
+                # New page.
+                current = model.WikiContent(title=title)
+            elif merge:
+                # We have such page but we're asked to not overwrite it.
+                continue
+
+            logging.info(u'Importing page "%s".' % title)
+            page = data[title]
+
+            author = None
+            if page.has_key('author'):
+                if authors.has_key(page['author']):
+                    author = authors[page['author']]
+                else:
+                    author = model.WikiUser.gql('WHERE wiki_user = :1', users.User(page['author'])).get()
+                    if author is None:
+                        author = model.WikiUser(wiki_user=users.User(page['author']))
+                        author.put()
+                    authors[page['author']] = author
+
+            current.body = page['body']
+            current.updated = datetime.datetime.strptime(page['updated'], '%Y-%m-%d %H:%M:%S')
+            current.author = author
+
+            options = parse_page_options(unicode(page['body']))
+            if options.has_key('redirect'):
+                current.redirect = options['redirect']
+            if options.has_key('labels'):
+                current.labels = options['labels']
+            current.links = self._get_linked_page_names(page['body'])
+
+            current.put()
+        self.redirect('/w/index')
+
+
 def main():
     debug = os.environ.get('SERVER_SOFTWARE').startswith('Development/')
     if debug:
@@ -716,6 +795,8 @@ def main():
       ('/w/backlinks$', BackLinksHandler),
       ('/w/changes$', ChangesHandler),
       ('/w/changes\.rss$', ChangesFeedHandler),
+      ('/w/data/export$', DataExportHandler),
+      ('/w/data/import$', DataImportHandler),
       ('/w/edit$', EditHandler),
       ('/w/history$', HistoryHandler),
       ('/w/index$', IndexHandler),

@@ -194,6 +194,9 @@ table.forms .text {
   width: 500px;
   max-width: 500px;
 }
+form div {
+	margin: 0 0 .5em;
+}
 
 
 /**
