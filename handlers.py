@@ -406,7 +406,11 @@ class BaseRequestHandler(webapp.RequestHandler):
             else:
                 logging.debug('Cache HIT for "%s"' % cache_key)
                 # logging.debug(data)
+            self._check_access(data)
             self.generate(self.template, data)
+
+    def _check_access(self, data):
+        pass
 
     def _get_data(self, *args):
         """
@@ -466,6 +470,31 @@ class PageHandler(BaseRequestHandler):
     def _get_data(self, page_name):
         return self._get_page(urllib.unquote(page_name).decode('utf-8').replace('_', ' '))
 
+    def _check_access(self, data):
+        settings = get_settings()
+        can_read = settings.has_key('open-reading') and settings['open-reading'] == 'yes'
+        if data['page_options'].has_key('public') and data['page_options']['public'] == 'yes':
+            can_read = True
+        if data['page_options'].has_key('private') and data['page_options']['private'] == 'yes':
+            can_read = False
+        if can_read:
+            logging.debug('Reading allowed: wiki/page settings.')
+            return
+        user = users.get_current_user()
+        if user is None:
+            logging.debug('Reading disallowed: not logged in.')
+            raise ForbiddenException(u'You must be logged in to view this page.')
+        if settings.has_key('readers') and user.email() in settings['readers']:
+            logging.debug('Reading allowed: user is a reader.')
+            return
+        if settings.has_key('editors') and user.email() in settings['editors']:
+            logging.debug('Reading allowed: user is an editor.')
+            return
+        if users.is_current_user_admin():
+            logging.debug('Reading allowed: user is an admin.')
+            return
+        raise ForbiddenException(u'Reading disallowed: no access.')
+
     def _get_page(self, title, loop=10):
         """
         Returns information about the page as a dictionary with keys:
@@ -483,16 +512,13 @@ class PageHandler(BaseRequestHandler):
             page = model.WikiContent.gql('WHERE title = :1', page.redirect).get() or model.WikiContent(title=page.redirect)
             loop -= 1
 
-        if not can_read(page):
-            raise ForbiddenException(u'You are not allowed to view this page.')
-
         result.update({
             'page_title': page.title,
             'page_exists': page.is_saved(),
             'page_options': {},
             'can_edit': can_edit(page),
-            'public_page': get_settings('open-reading') == 'yes' or page.pread,
         })
+
         if page.author:
             result['page_author'] = page.author.wiki_user.nickname()
             result['page_author_email'] = page.author.wiki_user.email()
