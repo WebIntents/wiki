@@ -110,6 +110,10 @@ a, #pb a.int {
   font-size: 16pt;
   line-height: 16pt;
 }
+#pb pre {
+  background-color: #eee;
+  border: solid 1px #ccc;
+}
 
 #tabs {
   list-style-type: none;
