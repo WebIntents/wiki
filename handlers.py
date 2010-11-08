@@ -364,7 +364,7 @@ class BaseRequestHandler(webapp.RequestHandler):
                 use_cache = False
                 logging.debug('Cache MIS for \"%s\"' % cache_key)
             if use_cache and users.is_current_user_admin() and 'nocache' in self.request.arguments():
-                logging.debug('Cache MIS for \"%s\": requested by admin' % cache_key)
+                logging.debug('Cache IGN for \"%s\": requested by admin' % cache_key)
                 use_cache = False
             if not use_cache:
                 self._real_get(*args)
@@ -394,7 +394,7 @@ class BaseRequestHandler(webapp.RequestHandler):
             elif not self.cache_data:
                 use_cache = False
                 logging.debug('Cache IGN for "%s": disabled for class %s.' % (cache_key, self.__class__.__name__))
-            elif users.is_current_user_admin() and 'nocache' in self.request.arguments():
+            if users.is_current_user_admin() and 'nocache' in self.request.arguments():
                 use_cache = False
                 logging.debug('Cache IGN for "%s": requested by admin.' % (cache_key))
             if not use_cache:
@@ -457,7 +457,9 @@ class BaseRequestHandler(webapp.RequestHandler):
         Removes a page from both page and data cache.
         """
         page_url = filters.pageurl(page_name)
+        logging.debug('Cache DEL data#' + page_url)
         memcache.delete('data#' + page_url)
+        logging.debug('Cache DEL page#' + page_url)
         memcache.delete('page#' + page_url)
 
 
