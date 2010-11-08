@@ -573,6 +573,7 @@ class EditHandler(BaseRequestHandler):
     def post(self):
         page = self._load_page(urllib.unquote(str(self.request.get('name'))).decode('utf-8'))
         old_title = page.title
+        old_labels = page.labels
 
         # Save in the archive.
         if page.is_saved():
@@ -616,6 +617,11 @@ class EditHandler(BaseRequestHandler):
 
         self._flush_cache(page.title)
         self._flush_cache(old_title)
+
+        # Flush labels cache
+        for label in list(set(old_labels + page.labels)):
+            self._flush_cache(u'Label:' + label)
+
         self.redirect(filters.pageurl(page.title))
 
     def _load_page(self, page_title):
