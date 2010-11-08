@@ -13,7 +13,7 @@
   {% if page_exists %}
     {{ page_text }}
     {% if page_options.labels %}
-      <p class="categories">Categories: {% for label in page_options.labels %}{% if forloop.first %}{% else %}, {% endif %}<a class="int" href="{{ label|labelurl }}">{{ label|escape }}</a>{% endfor %}.</p>
+      <p class="categories">Labels: {% for label in page_options.labels %}{% if forloop.first %}{% else %}, {% endif %}<a class="int" href="{{ label|labelurl }}">{{ label|escape }}</a>{% endfor %}.</p>
     {% endif %}
   {% else %}
     <h1>{{ page_title }}</h1>
