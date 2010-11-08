@@ -595,6 +595,8 @@ class EditHandler(BaseRequestHandler):
             options = parse_page_options(unicode(page.body))
             if options.has_key('redirect'):
                 page.redirect = options['redirect']
+            else:
+                page.redirect = None
             if options.has_key('public') and options['public'] == 'yes':
                 page.pread = True
             elif options.has_key('private') and options['private'] == 'yes':
