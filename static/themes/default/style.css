@@ -108,6 +108,7 @@ a, #pb a.int {
 }
 #pb h2 {
   font-size: 16pt;
+  line-height: 16pt;
 }
 
 #tabs {
@@ -250,3 +251,5 @@ a.iw-broken {
   display: inline-block;
   background-color: #f3f3f3;
 }
+
+/* vim: set ts=2 sts=2 sw=2 et ai noci: */
