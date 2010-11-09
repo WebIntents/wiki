@@ -10,7 +10,7 @@
       {% for style in settings.extra_styles %}
         <link rel="stylesheet" type="text/css" href="{{ style|escape }}"/>
       {% endfor %}
-      <link rel="shortcut icon" href="{% if settings.favicon %}{{ settings.favicon|escape }}{% else %}/static/logo.png{% endif %}" type="image/png" /> 
+      <link rel="shortcut icon" href="{% if settings.favicon %}{{ settings.favicon|escape }}{% else %}/static/favicon.ico{% endif %}" type="image/png" /> 
       <link rel="alternate" type="application/rss+xml" title="New Pages" href="/w/index.rss" /> 
       {% block heads %}{% endblock %}
       <title>{% block title %}{{ settings.title|escape }}{% endblock %}</title>

@@ -432,7 +432,7 @@ class BaseRequestHandler(webapp.RequestHandler):
 
     def _get_sidebar(self):
         page_name = get_settings('sidebar', 'gaewiki:sidebar')
-        return self._get_page_contents(page_name, u'<a href="/"><img src="/static/logo.png" width="186" alt="logo" height="167"/></a>\n\nThis is a good place for a brief introduction to your wiki, a logo and such things.\n\n[Edit this text](/w/edit?page=%s)' % page_name)
+        return self._get_page_contents(page_name, u'<a href="/"><img src="/static/logo-186.png" width="186" alt="logo" height="167"/></a>\n\nThis is a good place for a brief introduction to your wiki, a logo and such things.\n\n[Edit this text](/w/edit?page=%s)' % page_name)
 
     def _get_footer(self):
         page_name = get_settings('footer', 'gaewiki:footer')
