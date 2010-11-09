@@ -260,12 +260,16 @@ class BaseRequestHandler(webapp.RequestHandler):
             self.redirect(users.create_login_url(self.request.url))
         else:
             self.error(e.code)
-            self.generate('error.html', template_values={
+            template_values = {
                 'settings': get_settings(),
                 'code': e.code,
                 'title': e.title,
                 'message': e.message,
-            })
+            }
+            if e.code == 403:
+                template_values['sidebar'] = None
+                template_values['footer'] = None
+            self.generate('error.html', template_values)
 
     def getStartPage(self):
         return filters.pageurl(get_settings('start_page', 'Welcome'))
@@ -336,8 +340,10 @@ class BaseRequestHandler(webapp.RequestHandler):
             'log_in_out_url': log_in_out_url,
             'is_admin': users.is_current_user_admin(),
         }
-        values['sidebar'] = self._get_sidebar()
-        values['footer'] = self._get_footer()
+        if not values.has_key('sidebar'):
+            values['sidebar'] = self._get_sidebar()
+        if not values.has_key('footer'):
+            values['footer'] = self._get_footer()
         url = urlparse.urlparse(self.request.url)
         values['base'] = url[0] + '://' + url[1]
         values['settings_page'] = SETTINGS_PAGE_NAME
