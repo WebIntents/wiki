@@ -343,7 +343,7 @@ class BaseRequestHandler(webapp.RequestHandler):
         values['settings_page'] = SETTINGS_PAGE_NAME
         values.update(template_values)
 
-        logging.debug('Rendering %s with %s' % (self.request.path, values))
+        # logging.debug('Rendering %s with %s' % (self.request.path, values))
 
         # Construct the path to the template
         directory = os.path.dirname(__file__)
@@ -405,7 +405,7 @@ class BaseRequestHandler(webapp.RequestHandler):
                 logging.debug('Cache MIS for "%s"' % cache_key)
             elif not self.cache_data:
                 use_cache = False
-                logging.debug('Cache IGN for "%s": disabled for class %s.' % (cache_key, self.__class__.__name__))
+                logging.debug('Cache IGN for "%s": disabled by class %s.' % (cache_key, self.__class__.__name__))
             if users.is_current_user_admin() and 'nocache' in self.request.arguments():
                 use_cache = False
                 logging.debug('Cache IGN for "%s": requested by admin.' % (cache_key))
@@ -488,11 +488,12 @@ class PageHandler(BaseRequestHandler):
         settings = get_settings()
         can_read = settings.has_key('open-reading') and settings['open-reading'] == 'yes'
         if data['page_options'].has_key('public') and data['page_options']['public'] == 'yes':
+            logging.debug('Reading allowed: wiki settings.')
             can_read = True
         if data['page_options'].has_key('private') and data['page_options']['private'] == 'yes':
+            logging.debug('Reading allowed: page settings.')
             can_read = False
         if can_read:
-            logging.debug('Reading allowed: wiki/page settings.')
             return
         user = users.get_current_user()
         if user is None:
@@ -551,8 +552,7 @@ class StartPageHandler(PageHandler):
     Shows the main page (named in the settings).
     """
     def get(self):
-        vars = self._get_page(get_settings('start_page', 'Welcome'))
-        self.generate('view.html', vars)
+        return PageHandler.get(self, get_settings('start_page', 'Welcome'))
 
 
 class HistoryHandler(BaseRequestHandler):
