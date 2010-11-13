@@ -69,7 +69,7 @@ def parse_page_options(text):
                     k = kv[0].strip()
                     v = kv[1].strip()
                     if k.endswith('s'):
-                        v = re.split('[\s,]+', v)
+                        v = re.split(',\s*', v)
                     options[k] = v
     options['text'] = parts[-1]
     return options
@@ -558,7 +558,7 @@ class StartPageHandler(PageHandler):
     Shows the main page (named in the settings).
     """
     def get(self):
-        return PageHandler.get(self, get_settings('start_page', 'Welcome'))
+        return PageHandler.get(self, urllib.quote(get_settings('start_page', 'Welcome').encode('utf-8')))
 
 
 class HistoryHandler(BaseRequestHandler):
