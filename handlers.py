@@ -551,6 +551,14 @@ class PageHandler(BaseRequestHandler):
             result['page_options'] = parse_page_options(unicode(page.body))
         if result['page_options'].has_key('text'):
             result['page_text'] = wikify(result['page_options']['text'])
+
+        if result['page_options'].has_key('public') and result['page_options']['public'] == 'yes':
+            result['public_page'] = True
+        else:
+            settings = get_settings()
+            if settings.has_key('open-reading') and settings['open-reading'] == 'yes':
+                result['public_page'] = True
+
         return result
 
 
