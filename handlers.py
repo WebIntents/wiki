@@ -189,6 +189,8 @@ def wikify(text):
     """
     text, count = WIKI_WORD_PATTERN.subn(_wikify_one, text)
     text = markdown.markdown(text, get_settings('markdown-extensions', [])).strip()
+    text = re.sub(r'\.  ', '.&nbsp; ', text)
+    text = re.sub(u' (—|--) ', u'&nbsp;— ', text)
     return text
 
 
