@@ -47,179 +47,8 @@ WIKI_WORD_PATTERN = re.compile('\[\[([^]|]+\|)?([^]]+)\]\]')
 SETTINGS_PAGE_NAME = 'gaewiki:settings'
 
 
-def parse_page_options(text):
-    """
-    Parses special fields in page header.  The header is separated by a line
-    with 3 dashes.  It contains lines of the "key: value" form, which define
-    page options.
-
-    Returns a dictionary with such options.  Page text is available as option
-    named "text".
-    """
-    if type(text) != unicode:
-        raise TypeError('parse_page_options() expects Unicode text, not "%s".' % text.__class__.__name__)
-    options = dict()
-    text = text.replace('\r\n', '\n') # fix different EOL types
-    parts = text.split(u'\n---\n', 1)
-    if len(parts) > 1:
-        for line in parts[0].split('\n'):
-            if not line.startswith('#'):
-                kv = line.split(':', 1)
-                if len(kv) == 2:
-                    k = kv[0].strip()
-                    v = kv[1].strip()
-                    if k.endswith('s'):
-                        v = re.split(',\s*', v)
-                    options[k] = v
-    options['text'] = parts[-1]
-    return options
-
-
-def get_settings(key=None, default_value=''):
-    """
-    Loads settings from the datastore, page specified in SETTINGS_PAGE_NAME.
-    If the page does not exist, some reasonable defaults are applied and saved.
-    """
-    page = model.WikiContent.gql('WHERE title = :1', SETTINGS_PAGE_NAME).get()
-    if page is None:
-        page = model.WikiContent(title=SETTINGS_PAGE_NAME)
-        page.body = u'\n'.join([
-            "title: My Wiki",
-            "start_page: Welcome",
-            "admin_email: nobody@example.com",
-            "sidebar: gaewiki:sidebar",
-            "footer: gaewiki:footer",
-            "open-reading: yes",
-            "open-editing: no",
-            "editors: user1@example.com, user2@example.com",
-            "interwiki-google: http://www.google.ru/search?sourceid=chrome&ie=UTF-8&q=%s",
-            "interwiki-wp: http://en.wikipedia.org/wiki/Special:Search?search=%s",
-        ]) + '\n---\n# %s\n\nEdit me.' % SETTINGS_PAGE_NAME
-        page.put()
-    settings = parse_page_options(unicode(page.body))
-    if key is None:
-        return settings
-    if settings.has_key(key):
-        return settings[key]
-    return default_value
-
-
-def is_current_user_a_reader():
-    if users.is_current_user_admin():
-        logging.debug('Reading allowed: admin.')
-        return True
-    settings = get_settings()
-    if settings.has_key('open-reading') and settings['open-reading'] == 'yes':
-        logging.debug('Reading allowed: open-reading is set.')
-        return True
-    user = users.get_current_user()
-    if user is None:
-        logging.debug('Anoymous reading forbidden.')
-        return False
-    allowed = []
-    if settings.has_key('readers'):
-        allowed += settings['readers']
-    if settings.has_key('editors'):
-        allowed += settings['editors']
-    if user.email() in allowed:
-        logging.debug('Reading allowed for %s.' % user.email())
-        return True
-    logging.debug('Disallowing reading for %s.' % user.email())
-    return False
-
-
-def can_read(page=None):
-    """
-    Checks whether current user can read a page.  He can if he's an admin, the
-    wiki is open for reading or if his email address is in the list of readers.
-    """
-    if page is not None and page.pread:
-        logging.debug('Reading allowed: public page.')
-        return True
-    if users.is_current_user_admin():
-        logging.debug('Reading allowed: user is admin.')
-        return True
-    settings = get_settings()
-    if settings.has_key('open-reading') and settings['open-reading'] == 'yes':
-        logging.debug('Reading allowed: open.')
-        return True
-    user = users.get_current_user()
-    if user is None:
-        logging.debug('Reading forbidden: not logged in.')
-        return False
-    if settings.has_key('readers'):
-        if user.email() in settings['readers']:
-            logging.debug('Reading allowed: %s is a reader.' % user.email())
-            return True
-    logging.debug('Reading forbidden: by default.')
-    return False
-
-
-def can_edit(page=None):
-    """
-    Checks whether current user can edit a page.  He can if he's an admin, the
-    wiki is open for editing or if his email address is in the list of editors.
-    """
-    if users.is_current_user_admin():
-        logging.debug('Editing allowed: user is admin.')
-        return True
-    settings = get_settings()
-    if settings.has_key('open-editing') and settings['open-editing'] == 'yes':
-        logging.debug('Editing allowed: open.')
-        return True
-    user = users.get_current_user()
-    if user is None:
-        logging.debug('Editing forbidden: not logged in.')
-        return False
-    if settings.has_key('editors'):
-        if user.email() in settings['editors']:
-            logging.debug('Editing allowed: %s is an editor.' % user.email())
-            return True
-    logging.debug('Editing forbidden: by default.')
-    return False
-
-
 def pagesort(pages):
     return sorted(pages, cmp=lambda a, b: cmp(a.title.lower(), b.title.lower()))
-
-
-def wikify(text):
-    """
-    Covnerts Markdown text into HTML.  Supports interwikis.
-    """
-    text, count = WIKI_WORD_PATTERN.subn(_wikify_one, text)
-    text = markdown.markdown(text, get_settings('markdown-extensions', [])).strip()
-    text = re.sub(r'\.  ', '.&nbsp; ', text)
-    text = re.sub(u' (—|--) ', u'&nbsp;— ', text)
-    return text
-
-
-def _wikify_one(pat):
-    """
-    Wikifies one link.
-    """
-    page_title = pat.group(2)
-    if pat.group(1):
-        page_name = pat.group(1).rstrip('|')
-    else:
-        page_name = page_title
-
-    # interwiki
-    if ':' in page_name:
-        parts = page_name.split(':', 2)
-        if ' ' not in parts[0]:
-            if page_name == page_title:
-                page_title = parts[1]
-            if parts[0] == 'List':
-                logging.debug('Inserting a list of pages labelled with "%s".' % parts[1])
-                pages = model.WikiContent.gql('WHERE labels = :1', parts[1]).fetch(100)
-                text = u'\n'.join(['- <a class="int" href="%s">%s</a>' % (filters.pageurl(p.title), p.title) for p in pagesort(pages)])
-                return text
-            iwlink = get_settings(u'interwiki-' + parts[0])
-            if iwlink:
-                return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], iwlink.replace('%s', urllib.quote(parts[1].encode('utf-8'))), page_title)
-
-    return '<a class="int" href="%s">%s</a>' % (filters.pageurl(page_name), page_title)
 
 
 class HTTPException(Exception):
@@ -227,8 +56,7 @@ class HTTPException(Exception):
 
     def __init__(self, *args):
         self.title = self.__class__.__name__
-        if args:
-            self.title = args[0]
+        if args: self.title = args[0]
 
 class UnauthorizedException(HTTPException):
     code = 401
@@ -255,6 +83,10 @@ class BaseRequestHandler(webapp.RequestHandler):
     # Default content type for generate().
     content_type = 'text/html'
 
+    def __init__(self, *args, **kwargs):
+        self.settings = self.__load_settings()
+        return super(BaseRequestHandler, self).__init__(*args, **kwargs)
+
     def handle_exception(self, e, debug_mode):
         if not issubclass(e.__class__, HTTPException):
             return webapp.RequestHandler.handle_exception(self, e, debug_mode)
@@ -264,7 +96,7 @@ class BaseRequestHandler(webapp.RequestHandler):
         else:
             self.error(e.code)
             template_values = {
-                'settings': get_settings(),
+                'settings': self.get_settings(),
                 'code': e.code,
                 'title': e.title,
                 'message': e.message,
@@ -275,7 +107,7 @@ class BaseRequestHandler(webapp.RequestHandler):
             self.generate('error.html', template_values)
 
     def getStartPage(self):
-        return filters.pageurl(get_settings('start_page', 'Welcome'))
+        return filters.pageurl(self.get_setting('start_page', 'Welcome'))
 
     def notifyUser(self, address, message):
         sent = False
@@ -335,7 +167,7 @@ class BaseRequestHandler(webapp.RequestHandler):
         else:
             log_in_out_url = users.create_login_url(self.request.path)
 
-        template_values['settings'] = get_settings()
+        template_values['settings'] = self.get_settings()
 
         # We'll display the user name if available and the URL on all pages
         values = {
@@ -366,11 +198,104 @@ class BaseRequestHandler(webapp.RequestHandler):
         self.response.out.write(result)
 
     def get_settings(self):
-        return get_settings()
+        return self.settings
 
     def get_setting(self, name, default=None):
-        data = self.get_settings()
-        return data.has_key(name) and data[name] or default
+        return self.settings.has_key(name) and self.settings[name] or default
+
+    def __load_settings(self):
+        """
+        Loads settings from the datastore, page specified in SETTINGS_PAGE_NAME.
+        If the page does not exist, some reasonable defaults are applied and saved.
+        """
+        page = model.WikiContent.gql('WHERE title = :1', SETTINGS_PAGE_NAME).get()
+        if page is None:
+            page = model.WikiContent(title=SETTINGS_PAGE_NAME)
+            page.body = u'\n'.join([
+                "title: My Wiki",
+                "start_page: Welcome",
+                "admin_email: nobody@example.com",
+                "sidebar: gaewiki:sidebar",
+                "footer: gaewiki:footer",
+                "open-reading: yes",
+                "open-editing: no",
+                "editors: user1@example.com, user2@example.com",
+                "interwiki-google: http://www.google.ru/search?sourceid=chrome&ie=UTF-8&q=%s",
+                "interwiki-wp: http://en.wikipedia.org/wiki/Special:Search?search=%s",
+            ]) + '\n---\n# %s\n\nEdit me.' % SETTINGS_PAGE_NAME
+            page.put()
+        return self.parse_page_options(page.body)
+
+    def can_read(self, page=None, options=None):
+        """
+        Checks whether current user can read a page.  He can if he's an admin, the
+        wiki is open for reading or if his email address is in the list of readers.
+        """
+        if (page and page.pread) or (options and options['public_page']):
+            logging.debug('Reading allowed: public page.')
+            return True
+        if users.is_current_user_admin():
+            logging.debug('Reading allowed: user is admin.')
+            return True
+        if self.get_setting('open-reading') == 'yes':
+            logging.debug('Reading allowed: open.')
+            return True
+        user = users.get_current_user()
+        if user is None:
+            logging.debug('Reading forbidden: not logged in.')
+            return False
+        if user.email() in self.get_setting('readers', []):
+            logging.debug('Reading allowed: %s is a reader.' % user.email())
+            return True
+        logging.debug('Reading forbidden: by default.')
+        return False
+
+    def can_edit(self, page=None):
+        """
+        Checks whether current user can edit a page.  He can if he's an admin, the
+        wiki is open for editing or if his email address is in the list of editors.
+        """
+        if users.is_current_user_admin():
+            logging.debug('Editing allowed: user is admin.')
+            return True
+        if self.get_setting('open-editing') == 'yes':
+            logging.debug('Editing allowed: open.')
+            return True
+        user = users.get_current_user()
+        if user is None:
+            logging.debug('Editing forbidden: not logged in.')
+            return False
+        if user.email() in self.get_setting('editors', []):
+            logging.debug('Editing allowed: %s is an editor.' % user.email())
+            return True
+        logging.debug('Editing forbidden: by default.')
+        return False
+
+    def parse_page_options(self, text):
+        """
+        Parses special fields in page header.  The header is separated by a
+        line with 3 dashes.  It contains lines of the "key: value" form, which
+        define page options.
+
+        Returns a dictionary with such options.  Page text is available as
+        option named "text".
+        """
+        test = unicode(text)
+        options = dict()
+        text = text.replace('\r\n', '\n') # fix different EOL types
+        parts = text.split(u'\n---\n', 1)
+        if len(parts) > 1:
+            for line in parts[0].split('\n'):
+                if not line.startswith('#'):
+                    kv = line.split(':', 1)
+                    if len(kv) == 2:
+                        k = kv[0].strip()
+                        v = kv[1].strip()
+                        if k.endswith('s'):
+                            v = re.split(',\s*', v)
+                        options[k] = v
+        options['text'] = parts[-1]
+        return options
 
     def get(self, *args):
         """
@@ -450,11 +375,11 @@ class BaseRequestHandler(webapp.RequestHandler):
         return {}
 
     def _get_sidebar(self):
-        page_name = get_settings('sidebar', 'gaewiki:sidebar')
+        page_name = self.get_setting('sidebar', 'gaewiki:sidebar')
         return self._get_page_contents(page_name, u'<a href="/"><img src="/static/logo-186.png" width="186" alt="logo" height="167"/></a>\n\nThis is a good place for a brief introduction to your wiki, a logo and such things.\n\n[Edit this text](/w/edit?page=%s)' % page_name)
 
     def _get_footer(self):
-        page_name = get_settings('footer', 'gaewiki:footer')
+        page_name = self.get_setting('footer', 'gaewiki:footer')
         return self._get_page_contents(page_name, u'This wiki is built with [GAEWiki](http://gaewiki.googlecode.com/).')
 
     def _get_page_contents(self, page_title, default_body=None):
@@ -463,8 +388,8 @@ class BaseRequestHandler(webapp.RequestHandler):
             page = model.WikiContent(title=page_title, body=(u'# %s\n\n' % page_title) + default_body)
             page.put()
         if page is not None:
-            options = parse_page_options(unicode(page.body))
-            text = wikify(options['text'])
+            options = self.parse_page_options(page.body)
+            text = self.wikify(options['text'])
             text = re.sub('<h1>.*</h1>\s*', '', text) # remove the header
             return text.strip()
 
@@ -493,6 +418,43 @@ class BaseRequestHandler(webapp.RequestHandler):
         logging.debug('Cache DEL page#' + page_url)
         memcache.delete('page#' + page_url)
 
+    def wikify(self, text):
+        """
+        Covnerts Markdown text into HTML.  Supports interwikis.
+        """
+        text, count = WIKI_WORD_PATTERN.subn(self.__wikify_one, text)
+        text = markdown.markdown(text, self.get_setting('markdown-extensions', [])).strip()
+        text = re.sub(r'\.  ', '.&nbsp; ', text)
+        text = re.sub(u' (—|--) ', u'&nbsp;— ', text)
+        return text
+
+    def __wikify_one(self, pat):
+        """
+        Wikifies one link.
+        """
+        page_title = pat.group(2)
+        if pat.group(1):
+            page_name = pat.group(1).rstrip('|')
+        else:
+            page_name = page_title
+
+        # interwiki
+        if ':' in page_name:
+            parts = page_name.split(':', 2)
+            if ' ' not in parts[0]:
+                if page_name == page_title:
+                    page_title = parts[1]
+                if parts[0] == 'List':
+                    logging.debug('Inserting a list of pages labelled with "%s".' % parts[1])
+                    pages = model.WikiContent.gql('WHERE labels = :1', parts[1]).fetch(100)
+                    text = u'\n'.join(['- <a class="int" href="%s">%s</a>' % (filters.pageurl(p.title), p.title) for p in pagesort(pages)])
+                    return text
+                iwlink = self.get_setting(u'interwiki-' + parts[0])
+                if iwlink:
+                    return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], iwlink.replace('%s', urllib.quote(parts[1].encode('utf-8'))), page_title)
+
+        return '<a class="int" href="%s">%s</a>' % (filters.pageurl(page_name), page_title)
+
 
 class PageHandler(BaseRequestHandler):
     template = 'view.html'
@@ -504,8 +466,7 @@ class PageHandler(BaseRequestHandler):
         return self._get_page(urllib.unquote(page_name).decode('utf-8').replace('_', ' '))
 
     def _check_access(self, data):
-        settings = get_settings()
-        can_read = settings.has_key('open-reading') and settings['open-reading'] == 'yes'
+        can_read = self.get_setting('open-reading') == 'yes'
         if data['page_options'].has_key('public') and data['page_options']['public'] == 'yes':
             logging.debug('Reading allowed: wiki settings.')
             can_read = True
@@ -518,10 +479,10 @@ class PageHandler(BaseRequestHandler):
         if user is None:
             logging.debug('Reading disallowed: not logged in.')
             raise ForbiddenException(u'You must be logged in to view this page.')
-        if settings.has_key('readers') and user.email() in settings['readers']:
+        if user.email() in self.get_setting('readers', []):
             logging.debug('Reading allowed: user is a reader.')
             return
-        if settings.has_key('editors') and user.email() in settings['editors']:
+        if user.email() in self.get_setting('editors', []):
             logging.debug('Reading allowed: user is an editor.')
             return
         if users.is_current_user_admin():
@@ -540,7 +501,7 @@ class PageHandler(BaseRequestHandler):
             'page_exists': True,
             'page_revision': self.request.get('r'),
             'public_page': self.get_setting('open-reading') == 'yes',
-            'can_edit': can_edit(),
+            'can_edit': self.can_edit(),
         }
 
         text, author, updated = self.__get_page_text(title)
@@ -549,9 +510,9 @@ class PageHandler(BaseRequestHandler):
             result['page_exists'] = None
 
         else:
-            options = parse_page_options(unicode(text))
+            options = self.parse_page_options(text)
             result['page_options'] = options
-            result['page_text'] = wikify(options['text'])
+            result['page_text'] = self.wikify(options['text'])
             result['page_updated'] = updated
 
             if author:
@@ -582,14 +543,14 @@ class PageHandler(BaseRequestHandler):
                 return (None, None, None)
 
             if not self.request.get('noredir'):
-                options = parse_page_options(unicode(page.body))
+                options = self.parse_page_options(page.body)
                 while options.has_key('redirect') and options['redirect'] and loop > 0:
                     next_page = model.WikiContent.gql('WHERE title = :1', options['redirect']).get()
                     if next_page is None:
                         logging.debug('Broken redirect from %s' % title)
                         break
                     page = next_page
-                    options = parse_page_options(page.body)
+                    options = self.parse_page_options(page.body)
                     loop -= 1
 
             return (page.body, page.author, page.updated)
@@ -607,10 +568,10 @@ class StartPageHandler(PageHandler):
     Shows the main page (named in the settings).
     """
     def get(self):
-        return PageHandler.get(self, urllib.quote(get_settings('start_page', 'Welcome').encode('utf-8')))
+        return PageHandler.get(self, urllib.quote(self.get_setting('start_page', 'Welcome').encode('utf-8')))
 
     def _get_cache_key(self):
-        return '/' + urllib.quote(get_settings('start_page', 'Welcome'))
+        return '/' + urllib.quote(self.get_setting('start_page', 'Welcome'))
 
 
 class HistoryHandler(BaseRequestHandler):
@@ -626,7 +587,7 @@ class HistoryHandler(BaseRequestHandler):
     def _check_access(self, page_name):
         allowed = None
         page = model.WikiContent.gql('WHERE title = :1', page_name).get()
-        if not can_read(page):
+        if not self.can_read(page):
             raise ForbiddenException(u'You are not allowed to view this page\'s history.')
 
 
@@ -663,7 +624,7 @@ class EditHandler(BaseRequestHandler):
             page.updated = datetime.datetime.now()
             logging.debug('%s links to: %s' % (page.title, page.links))
 
-            options = parse_page_options(unicode(page.body))
+            options = self.parse_page_options(page.body)
             if options.has_key('redirect'):
                 page.redirect = options['redirect']
             else:
@@ -707,7 +668,7 @@ class EditHandler(BaseRequestHandler):
         """
         Raises an exception if the current user can't edit this page.
         """
-        allowed = can_edit(page)
+        allowed = self.can_edit(page)
         if page.title == SETTINGS_PAGE_NAME:
             allowed = users.is_current_user_admin()
         if not allowed:
@@ -732,7 +693,7 @@ class IndexHandler(BaseRequestHandler):
     Shows the list of all pages.
     """
     def get(self):
-        if not can_read():
+        if not self.can_read():
             raise ForbiddenException(u'You are not allowed to see this page.')
         self.generate('index.html', {
             'pages': pagesort(model.WikiContent.all().order('title').fetch(1000)),
@@ -741,7 +702,7 @@ class IndexHandler(BaseRequestHandler):
 
 class IndexFeedHandler(BaseRequestHandler):
     def get(self):
-        if not can_read():
+        if not self.can_read():
             raise ForbiddenException('You are not allowed to see this page.')
         plist = {}
         for revision in model.WikiRevision.gql('ORDER BY created DESC').fetch(1000):
@@ -755,7 +716,7 @@ class IndexFeedHandler(BaseRequestHandler):
 
 class ChangesHandler(BaseRequestHandler):
     def get(self):
-        if not can_read():
+        if not self.can_read():
             raise ForbiddenException('You are not allowed to see this page.')
         self.generate('changes.html', {
             'pages': model.WikiContent.gql('ORDER BY updated DESC').fetch(20),
@@ -764,7 +725,7 @@ class ChangesHandler(BaseRequestHandler):
 
 class ChangesFeedHandler(BaseRequestHandler):
     def get(self):
-        if not can_read():
+        if not self.can_read():
             raise ForbiddenException('You are not allowed to see this page.')
         self.generateRss('changes.rss', {
             'pages': model.WikiContent.gql('ORDER BY updated DESC').fetch(20),
@@ -788,7 +749,7 @@ class SitemapHandler(BaseRequestHandler):
         content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
         content += "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
 
-        show_all = get_settings('open-reading') == 'yes'
+        show_all = self.get_setting('open-reading') == 'yes'
         host = self.request.environ['HTTP_HOST']
 
         for page in model.WikiContent.all().order('-updated').fetch(1000):
@@ -810,7 +771,7 @@ class BackLinksHandler(BaseRequestHandler):
         page = model.WikiContent.gql('WHERE title = :1', page_title).get()
         if page is None:
             raise NotFoundException(u'No such page.')
-        if not can_read(page):
+        if not self.can_read(page):
             raise ForbiddenException(u'You are not allowed to view this page.')
         links = model.WikiContent.gql('WHERE links = :1', page_title).fetch(100)
         self.generate('backlinks.html', {
@@ -880,7 +841,7 @@ class DataImportHandler(BaseRequestHandler):
             current.updated = datetime.datetime.strptime(page['updated'], '%Y-%m-%d %H:%M:%S')
             current.author = author
 
-            options = parse_page_options(unicode(page['body']))
+            options = self.parse_page_options(page['body'])
             if options.has_key('redirect'):
                 current.redirect = options['redirect']
             if options.has_key('labels'):
