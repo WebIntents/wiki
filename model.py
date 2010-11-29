@@ -57,3 +57,8 @@ class WikiRevision(db.Model):
   author = db.ReferenceProperty(WikiUser)
   created = db.DateTimeProperty(auto_now_add=True)
   pread = db.BooleanProperty()
+
+
+def get_by_key(key):
+    """Loads an entity by its string key."""
+    return db.get(db.Key(key))

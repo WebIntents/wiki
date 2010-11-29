@@ -6,7 +6,7 @@
 {% block content %}
 <ul id="tabs"{% if public_page %}{% else %} class="locked"{% endif %}>
   <li class="active"><a class="view" href="{{ page_title|pageurl }}">View</a></li>
-  {% if can_edit %}<li><a href="/w/edit?page={{ page_title|uurlencode }}">Edit</a></li>{% endif %}
+  {% if can_edit %}<li><a href="/w/edit?page={{ page_title|uurlencode }}{% if page_revision %}&amp;r={{ page_revision }}{% endif %}">Edit</a></li>{% endif %}
   <li><a href="/w/history?page={{ page_title|uurlencode }}">History</a></li>
 </ul>
 <div class="wtabs extl" id="pb">

@@ -365,6 +365,13 @@ class BaseRequestHandler(webapp.RequestHandler):
         # Respond to the request by rendering the template
         self.response.out.write(result)
 
+    def get_settings(self):
+        return get_settings()
+
+    def get_setting(self, name, default=None):
+        data = self.get_settings()
+        return data.has_key(name) and data[name] or default
+
     def get(self, *args):
         """
         Adds transparent caching to GET request handlers.  Real work is done by
@@ -528,43 +535,71 @@ class PageHandler(BaseRequestHandler):
         page_title, page_exists, page_options, page_text.  If the page was
         redirected, the original name is available as page_source.
         """
-        page = model.WikiContent.gql('WHERE title = :1', title).get()
-        if page is None:
-            page = model.WikiContent(title=title)
-        result = {}
-        while page.redirect and loop and not 'noredir' in self.request.arguments():
-            if not result.has_key('page_source'):
-                result['page_source'] = page.title
-            logging.info('Redirecting from "%s" to "%s"' % (page.title, page.redirect))
-            page = model.WikiContent.gql('WHERE title = :1', page.redirect).get() or model.WikiContent(title=page.redirect)
-            loop -= 1
+        result = {
+            'page_title': title,
+            'page_exists': True,
+            'page_revision': self.request.get('r'),
+            'public_page': self.get_setting('open-reading') == 'yes',
+            'can_edit': can_edit(),
+        }
 
-        result.update({
-            'page_title': page.title,
-            'page_exists': page.is_saved(),
-            'page_options': {},
-            'can_edit': can_edit(page),
-        })
+        text, author, updated = self.__get_page_text(title)
 
-        if page.author:
-            result['page_author'] = page.author.wiki_user.nickname()
-            result['page_author_email'] = page.author.wiki_user.email()
-        if page.updated:
-            result['page_updated'] = page.updated
-        if page.is_saved():
-            result['page_key'] = str(page.key())
-            result['page_options'] = parse_page_options(unicode(page.body))
-        if result['page_options'].has_key('text'):
-            result['page_text'] = wikify(result['page_options']['text'])
+        if text is None:
+            result['page_exists'] = None
 
-        if result['page_options'].has_key('public') and result['page_options']['public'] == 'yes':
-            result['public_page'] = True
         else:
-            settings = get_settings()
-            if settings.has_key('open-reading') and settings['open-reading'] == 'yes':
+            options = parse_page_options(unicode(text))
+            result['page_options'] = options
+            result['page_text'] = wikify(options['text'])
+            result['page_updated'] = updated
+
+            if author:
+                result['page_author'] = author.wiki_user.nickname()
+                result['page_author_email'] = author.wiki_user.email()
+
+            if result['public_page'] and options.has_key('private') and options['private'] == 'yes':
+                result['public_page'] = False
+            elif not result['public_page'] and options.has_key('public') and options['public'] == 'yes':
                 result['public_page'] = True
 
         return result
+
+    def __get_page_text(self, page_title, loop=10):
+        """Returns page text.
+        
+        Supports the `r` GET parameter, which is treated as the exact revision
+        id.  Supports redirects, if there's no `noredir` GET parameter.
+        """
+        logging.debug(self.request.path)
+        if self.request.get('r'):
+            rev = model.get_by_key(self.request.get('r'))
+            return (rev.revision_body, rev.author, rev.created)
+
+        else:
+            page = model.WikiContent.gql('WHERE title = :1', page_title).get()
+            if page is None:
+                return (None, None, None)
+
+            if not self.request.get('noredir'):
+                options = parse_page_options(unicode(page.body))
+                while options.has_key('redirect') and options['redirect'] and loop > 0:
+                    next_page = model.WikiContent.gql('WHERE title = :1', options['redirect']).get()
+                    if next_page is None:
+                        logging.debug('Broken redirect from %s' % title)
+                        break
+                    page = next_page
+                    options = parse_page_options(page.body)
+                    loop -= 1
+
+            return (page.body, page.author, page.updated)
+
+    def _get_cache_key(self):
+        key = self.request.path
+        rev = self.request.get('r')
+        if rev:
+            key += '#' + rev
+        return key
 
 
 class StartPageHandler(PageHandler):
