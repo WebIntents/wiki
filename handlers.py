@@ -375,8 +375,8 @@ class BaseRequestHandler(webapp.RequestHandler):
             logging.error('Class %s does not define the _real_get() method, sending 501.' % self.__class__.__name__)
             self.error(501)
         else:
-            cache_key = 'page#' + self.request.path
-            cached = memcache.get(self.request.path)
+            cache_key = 'page#' + self._get_cache_key()
+            cached = memcache.get(cache_key)
             use_cache = True
             if not self.cache_page:
                 use_cache = False
@@ -390,11 +390,14 @@ class BaseRequestHandler(webapp.RequestHandler):
             if not use_cache:
                 self._real_get(*args)
                 cached = (self.response.headers, self.response.out, )
-                memcache.set(self.request.path, cached)
+                memcache.set(cache_key, cached)
             else:
                 logging.debug('Cache HIT for \"%s\"' % cache_key)
             self.response.headers = cached[0]
             self.response.out = cached[1]
+
+    def _get_cache_key(self):
+        return self.request.path
 
     def _real_get(self, *args):
         """
@@ -406,7 +409,7 @@ class BaseRequestHandler(webapp.RequestHandler):
             logging.error('Class %s does not define the _get_data() method, sending 501.' % self.__class__.__name__)
             self.error(501)
         else:
-            cache_key = 'data#' + self.request.path
+            cache_key = 'data#' + self._get_cache_key()
             data = memcache.get(cache_key)
             use_cache = True
             if type(data) != dict:
@@ -570,6 +573,9 @@ class StartPageHandler(PageHandler):
     """
     def get(self):
         return PageHandler.get(self, urllib.quote(get_settings('start_page', 'Welcome').encode('utf-8')))
+
+    def _get_cache_key(self):
+        return '/' + urllib.quote(get_settings('start_page', 'Welcome'))
 
 
 class HistoryHandler(BaseRequestHandler):
