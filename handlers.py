@@ -500,6 +500,7 @@ class PageHandler(BaseRequestHandler):
             'page_title': title,
             'page_exists': True,
             'page_revision': self.request.get('r'),
+            'page_options': {},
             'public_page': self.get_setting('open-reading') == 'yes',
             'can_edit': self.can_edit(),
         }
