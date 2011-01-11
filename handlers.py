@@ -258,7 +258,7 @@ class BaseRequestHandler(webapp.RequestHandler):
         if users.is_current_user_admin():
             logging.debug('Editing allowed: user is admin.')
             return True
-        if self.get_setting('open-editing') == 'yes':
+        if self.get_setting('open-editing') == 'yes' and not self.is_page_locked(page):
             logging.debug('Editing allowed: open.')
             return True
         user = users.get_current_user()
@@ -296,6 +296,19 @@ class BaseRequestHandler(webapp.RequestHandler):
                         options[k] = v
         options['text'] = parts[-1]
         return options
+
+    def is_page_locked(self, page):
+        "Checks whether the page's locked property is set to yes."
+        if type(page) == model.WikiContent:
+            page = {'page_options':self.parse_page_options(page.body)}
+        if type(page) != dict:
+            logging.debug(type(page))
+            return False
+        if not page.has_key('page_options'):
+            return False
+        if not page['page_options'].has_key('locked'):
+            return False
+        return page['page_options']['locked'] == 'yes'
 
     def get(self, *args):
         """
@@ -502,7 +515,6 @@ class PageHandler(BaseRequestHandler):
             'page_revision': self.request.get('r'),
             'page_options': {},
             'public_page': self.get_setting('open-reading') == 'yes',
-            'can_edit': self.can_edit(),
         }
 
         text, author, updated = self.__get_page_text(title)
@@ -525,6 +537,7 @@ class PageHandler(BaseRequestHandler):
             elif not result['public_page'] and options.has_key('public') and options['public'] == 'yes':
                 result['public_page'] = True
 
+        result['can_edit'] = self.can_edit(result)
         return result
 
     def __get_page_text(self, page_title, loop=10):
