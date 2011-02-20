@@ -51,6 +51,30 @@ def pagesort(pages):
     return sorted(pages, cmp=lambda a, b: cmp(a.title.lower(), b.title.lower()))
 
 
+def get_page_template(title):
+    template = '# PAGE_TITLE\n\n**PAGE_TITLE** is ...'
+    user = users.get_current_user()
+
+    template_names = ['gaewiki:anon page template']
+    if user is not None:
+        template_names.insert(0, 'gaewiki:user page template')
+    if users.is_current_user_admin():
+        template_names.insert(0, 'gaewiki:admin page template')
+
+    for template_name in template_names:
+        logging.debug(template_name)
+        page = model.WikiContent.gql('WHERE title = :1', template_name).get()
+        if page is not None:
+            logging.debug('Loaded template from %s' % template_name)
+            template = page.body.replace(template_name, 'PAGE_TITLE')
+            break
+
+    if user is not None:
+        template = template.replace('USER_EMAIL', user.email())
+
+    return template.replace('PAGE_TITLE', title)
+
+
 class HTTPException(Exception):
     code = 500
 
@@ -611,6 +635,8 @@ class EditHandler(BaseRequestHandler):
     """
     def get(self):
         page = self._load_page(self.request.get('page', 'Some Page'))
+        if not page.is_saved():
+            page.body = get_page_template(page.title)
         self.generate('edit.html', {
             'page': page,
         })
