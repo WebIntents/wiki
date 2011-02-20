@@ -323,7 +323,7 @@ class BaseRequestHandler(webapp.RequestHandler):
     def is_page_locked(self, page):
         "Checks whether the page's locked property is set to yes."
         if type(page) == model.WikiContent:
-            page = {'page_options':self.parse_page_options(page.body)}
+            page = {'page_options':self.parse_page_options(page.body or '')}
         if type(page) != dict:
             logging.debug(type(page))
             return False
@@ -710,6 +710,20 @@ class EditHandler(BaseRequestHandler):
         allowed = self.can_edit(page)
         if page.title == SETTINGS_PAGE_NAME:
             allowed = users.is_current_user_admin()
+
+        if not users.is_current_user_admin():
+            whitelist = self.get_setting('page-whitelist')
+            if whitelist:
+                if re.search(whitelist, page.title) is None:
+                    logging.debug(u'Page "%s" is not whitelisted: %s' % (page.title, whitelist))
+                    allowed = False
+
+            blacklist = self.get_setting('page-blacklist')
+            if blacklist:
+                if re.search(blacklist, page.title) is not None:
+                    logging.debug(u'Page "%s" is blacklisted: %s' % (page.title, blacklist))
+                    allowed = False
+
         if not allowed:
             if users.get_current_user() is None:
                 message = u'You are not allowed to edit this page. Try logging in.'
