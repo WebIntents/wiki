@@ -718,14 +718,9 @@ class IndexFeedHandler(BaseRequestHandler):
     def get(self):
         if not self.can_read():
             raise ForbiddenException('You are not allowed to see this page.')
-        plist = {}
-        for revision in model.WikiRevision.gql('ORDER BY created DESC').fetch(1000):
-            page = revision.wiki_page.title
-            if page not in plist:
-                plist[page] = { 'name': page, 'title': self.get_page_name(page), 'created': revision.created, 'author': revision.author }
-        self.generateRss('index.rss', template_values = {
-            'items': [plist[page] for page in plist],
-        });
+        self.generate('index.rss', {
+            'pages': model.WikiContent.all().order('-updated').fetch(100)
+        })
 
 
 class ChangesHandler(BaseRequestHandler):

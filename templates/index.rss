@@ -5,12 +5,12 @@
 <title>{{ settings.title }} Pages</title>
 <description>New pages in {{ settings.title }}.</description>
 <link>{{ base }}/w/index</link>
-{% for item in items %}
+{% for item in pages %}
 <item>
 <title>{{ item.title }}</title>
 <link>{{ base }}/{{ item.title }}</link>
 <guid>{{ base }}/{{ item.title }}</guid>
-<pubDate>{{ item.created|date:"r" }}</pubDate>
+<pubDate>{{ item.updated|date:"r" }}</pubDate>
 <author>{{ item.author.wiki_user }}</author>
 </item>
 {% endfor %}
