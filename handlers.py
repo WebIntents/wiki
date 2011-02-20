@@ -62,7 +62,6 @@ def get_page_template(title):
         template_names.insert(0, 'gaewiki:admin page template')
 
     for template_name in template_names:
-        logging.debug(template_name)
         page = model.WikiContent.gql('WHERE title = :1', template_name).get()
         if page is not None:
             logging.debug('Loaded template from %s' % template_name)
