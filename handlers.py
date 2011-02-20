@@ -593,7 +593,7 @@ class HistoryHandler(BaseRequestHandler):
     Lists revisions of a page.
     """
     def get(self):
-        page_title = self.request.get('page').decode('utf-8')
+        page_title = self.request.get('page')
         self._check_access(page_title)
         history = model.WikiRevision.gql('WHERE title = :1 ORDER BY created DESC', page_title).fetch(100)
         self.generate('history.html', { 'page_title': page_title, 'revisions': history })
@@ -781,7 +781,7 @@ class SitemapHandler(BaseRequestHandler):
 
 class BackLinksHandler(BaseRequestHandler):
     def get(self):
-        page_title = self.request.get('page').decode('utf-8')
+        page_title = self.request.get('page')
         page = model.WikiContent.gql('WHERE title = :1', page_title).get()
         if page is None:
             raise NotFoundException(u'No such page.')
