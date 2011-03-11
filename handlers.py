@@ -707,6 +707,7 @@ class EditHandler(BaseRequestHandler):
         """
         Raises an exception if the current user can't edit this page.
         """
+        message = None
         allowed = self.can_edit(page)
         if page.title == SETTINGS_PAGE_NAME:
             allowed = users.is_current_user_admin()
@@ -724,11 +725,20 @@ class EditHandler(BaseRequestHandler):
                     logging.debug(u'Page "%s" is blacklisted: %s' % (page.title, blacklist))
                     allowed = False
 
+        if '/' in page.title and not page.is_saved() and not users.is_current_user_admin():
+            if self.get_setting('parents-must-exist') == 'yes':
+                parent_title = '/'.join(page.title.split('/')[:-1])
+                parent = model.WikiContent.gql('WHERE title = :1', parent_title).get()
+                if parent is None:
+                    logging.debug(u'Page %s has not parent.' % page.title)
+                    allowed = False
+                    message = u'You are not allowed to create this page because the parent page (%s) does not exist.' % parent_title
+
         if not allowed:
             if users.get_current_user() is None:
-                message = u'You are not allowed to edit this page. Try logging in.'
+                message = message or u'You are not allowed to edit this page. Try logging in.'
             else:
-                message = u'You are not allowed to edit this page.'
+                message = message or u'You are not allowed to edit this page.'
             raise ForbiddenException(message)
 
 
