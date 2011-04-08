@@ -46,6 +46,19 @@ class WikiContent(db.Model):
   def get_by_key(cls, key):
     return db.get(db.Key(key))
 
+  def put(self):
+    "Adds the gaewiki:parent: labels transparently."
+    labels = [l for l in self.labels if not l.startswith('gaewiki:parent:')]
+    if '/' in self.title:
+      parts = self.title.split('/')[:-1]
+      while parts:
+        label = 'gaewiki:parent:' + '/'.join(parts)
+        labels.append(label)
+        parts.pop()
+        break # remove to add recursion
+    self.labels = labels
+    db.Model.put(self)
+
 
 class WikiRevision(db.Model):
   """

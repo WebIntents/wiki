@@ -425,7 +425,7 @@ class BaseRequestHandler(webapp.RequestHandler):
             page.put()
         if page is not None:
             options = self.parse_page_options(page.body)
-            text = self.wikify(options['text'])
+            text = self.wikify(options['text'], page_title)
             text = re.sub('<h1>.*</h1>\s*', '', text) # remove the header
             return text.strip()
 
@@ -454,17 +454,17 @@ class BaseRequestHandler(webapp.RequestHandler):
         logging.debug('Cache DEL page#' + page_url)
         memcache.delete('page#' + page_url)
 
-    def wikify(self, text):
+    def wikify(self, text, page_title=None):
         """
         Covnerts Markdown text into HTML.  Supports interwikis.
         """
-        text, count = WIKI_WORD_PATTERN.subn(self.__wikify_one, text)
+        text, count = WIKI_WORD_PATTERN.subn(lambda x: self.__wikify_one(x, page_title), text)
         text = markdown.markdown(text, self.get_setting('markdown-extensions', [])).strip()
         text = re.sub(r'\.  ', '.&nbsp; ', text)
         text = re.sub(u' (—|--) ', u'&nbsp;— ', text)
         return text
 
-    def __wikify_one(self, pat):
+    def __wikify_one(self, pat, real_page_title):
         """
         Wikifies one link.
         """
@@ -476,20 +476,25 @@ class BaseRequestHandler(webapp.RequestHandler):
 
         # interwiki
         if ':' in page_name:
-            parts = page_name.split(':', 2)
+            parts = page_name.split(':', 1)
             if ' ' not in parts[0]:
                 if page_name == page_title:
                     page_title = parts[1]
                 if parts[0] == 'List':
-                    logging.debug('Inserting a list of pages labelled with "%s".' % parts[1])
-                    pages = model.WikiContent.gql('WHERE labels = :1', parts[1]).fetch(100)
-                    text = u'\n'.join(['- <a class="int" href="%s">%s</a>' % (filters.pageurl(p.title), p.title) for p in pagesort(pages)])
-                    return text
+                    return self.list_pages_by_label(parts[1])
+                if parts[0] == 'ListChildren':
+                    return self.list_pages_by_label('gaewiki:parent:' + (parts[1] or real_page_title))
                 iwlink = self.get_setting(u'interwiki-' + parts[0])
                 if iwlink:
                     return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], iwlink.replace('%s', urllib.quote(parts[1].encode('utf-8'))), page_title)
 
         return '<a class="int" href="%s">%s</a>' % (filters.pageurl(page_name), page_title)
+
+    def list_pages_by_label(self, label):
+        logging.debug('Inserting a list of pages labelled with "%s".' % label)
+        pages = model.WikiContent.gql('WHERE labels = :1 ORDER BY title', label).fetch(100)
+        text = u'\n'.join(['- <a class="int" href="%s">%s</a>' % (filters.pageurl(p.title), p.title) for p in pagesort(pages)])
+        return text
 
 
 class PageHandler(BaseRequestHandler):
@@ -548,7 +553,7 @@ class PageHandler(BaseRequestHandler):
         else:
             options = self.parse_page_options(text)
             result['page_options'] = options
-            result['page_text'] = self.wikify(options['text'])
+            result['page_text'] = self.wikify(options['text'], title)
             result['page_updated'] = updated
 
             if author:
