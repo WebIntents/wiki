@@ -613,7 +613,7 @@ class StartPageHandler(PageHandler):
         return PageHandler.get(self, urllib.quote(self.get_setting('start_page', 'Welcome').encode('utf-8')))
 
     def _get_cache_key(self):
-        return '/' + urllib.quote(self.get_setting('start_page', 'Welcome'))
+        return '/' + urllib.quote(self.get_setting('start_page', 'Welcome').encode('utf-8'))
 
 
 class HistoryHandler(BaseRequestHandler):
