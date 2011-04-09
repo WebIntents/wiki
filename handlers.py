@@ -38,9 +38,9 @@ from google.appengine.ext.webapp import template
 from django.utils import simplejson
 
 # Site imports.
+import filters
 import markdown
 import model
-import filters
 
 # Some hard-coded settings.
 WIKI_WORD_PATTERN = re.compile('\[\[([^]|]+\|)?([^]]+)\]\]')
@@ -198,9 +198,9 @@ class BaseRequestHandler(webapp.RequestHandler):
             'log_in_out_url': log_in_out_url,
             'is_admin': users.is_current_user_admin(),
         }
-        if not values.has_key('sidebar'):
+        if 'sidebar' not in values:
             values['sidebar'] = self._get_sidebar()
-        if not values.has_key('footer'):
+        if 'footer' not in values:
             values['footer'] = self._get_footer()
         url = urlparse.urlparse(self.request.url)
         values['base'] = url[0] + '://' + url[1]
@@ -224,7 +224,7 @@ class BaseRequestHandler(webapp.RequestHandler):
         return self.settings
 
     def get_setting(self, name, default=None):
-        return self.settings.has_key(name) and self.settings[name] or default
+        return name in self.settings and self.settings[name] or default
 
     def __load_settings(self):
         """
@@ -327,9 +327,9 @@ class BaseRequestHandler(webapp.RequestHandler):
         if type(page) != dict:
             logging.debug(type(page))
             return False
-        if not page.has_key('page_options'):
+        if 'page_options' not in page:
             return False
-        if not page['page_options'].has_key('locked'):
+        if 'locked' not in page['page_options']:
             return False
         return page['page_options']['locked'] == 'yes'
 
@@ -508,10 +508,10 @@ class PageHandler(BaseRequestHandler):
 
     def _check_access(self, data):
         can_read = self.get_setting('open-reading') == 'yes'
-        if data['page_options'].has_key('public') and data['page_options']['public'] == 'yes':
+        if 'public' in data['page_options'] and data['page_options']['public'] == 'yes':
             logging.debug('Reading allowed: wiki settings.')
             can_read = True
-        if data['page_options'].has_key('private') and data['page_options']['private'] == 'yes':
+        if 'private' in data['page_options'] and data['page_options']['private'] == 'yes':
             logging.debug('Reading allowed: page settings.')
             can_read = False
         if can_read:
@@ -560,9 +560,9 @@ class PageHandler(BaseRequestHandler):
                 result['page_author'] = author.wiki_user.nickname()
                 result['page_author_email'] = author.wiki_user.email()
 
-            if result['public_page'] and options.has_key('private') and options['private'] == 'yes':
+            if result['public_page'] and 'private' in options and options['private'] == 'yes':
                 result['public_page'] = False
-            elif not result['public_page'] and options.has_key('public') and options['public'] == 'yes':
+            elif not result['public_page'] and 'public' in options and options['public'] == 'yes':
                 result['public_page'] = True
 
         result['can_edit'] = self.can_edit(result)
@@ -586,7 +586,7 @@ class PageHandler(BaseRequestHandler):
 
             if not self.request.get('noredir'):
                 options = self.parse_page_options(page.body)
-                while options.has_key('redirect') and options['redirect'] and loop > 0:
+                while 'redirect' in options and options['redirect'] and loop > 0:
                     next_page = model.WikiContent.gql('WHERE title = :1', options['redirect']).get()
                     if next_page is None:
                         logging.debug('Broken redirect from %s' % title)
@@ -669,15 +669,15 @@ class EditHandler(BaseRequestHandler):
             logging.debug('%s links to: %s' % (page.title, page.links))
 
             options = self.parse_page_options(page.body)
-            if options.has_key('redirect'):
+            if 'redirect' in options:
                 page.redirect = options['redirect']
             else:
                 page.redirect = None
-            if options.has_key('public') and options['public'] == 'yes':
+            if 'public' in options and options['public'] == 'yes':
                 page.pread = True
-            elif options.has_key('private') and options['private'] == 'yes':
+            elif 'private' in options and options['private'] == 'yes':
                 page.pread = False
-            if options.has_key('labels'):
+            if 'labels' in options:
                 page.labels = options['labels']
             else:
                 page.labels = []
@@ -890,8 +890,8 @@ class DataImportHandler(BaseRequestHandler):
             page = data[title]
 
             author = None
-            if page.has_key('author'):
-                if authors.has_key(page['author']):
+            if 'author' in page:
+                if page['author'] in authors:
                     author = authors[page['author']]
                 else:
                     author = model.WikiUser.gql('WHERE wiki_user = :1', users.User(page['author'])).get()
@@ -905,9 +905,9 @@ class DataImportHandler(BaseRequestHandler):
             current.author = author
 
             options = self.parse_page_options(page['body'])
-            if options.has_key('redirect'):
+            if 'redirect' in options:
                 current.redirect = options['redirect']
-            if options.has_key('labels'):
+            if 'labels' in options:
                 current.labels = options['labels']
             current.links = self._get_linked_page_names(page['body'])
 
