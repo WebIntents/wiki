@@ -35,3 +35,8 @@ def get_all():
 
 def get(key, default_value=None):
     return get_all().get(key, default_value)
+
+
+def flush():
+    global settings
+    settings = None

@@ -98,6 +98,8 @@ def backup_page(page):
 
 
 def update_page(title, body, author, delete):
+    if title == 'gaewiki:settings':
+        settings.flush()
     page = get_page_by_name(title)
     if page.is_saved():
         backup_page(page)
