@@ -23,14 +23,19 @@ Edit me."""
 
 settings = None
 
+def get_host_page():
+    """Returns the page that hosts the settings."""
+    page = model.WikiContent.gql('WHERE title = :1', SETTINGS_PAGE_NAME).get()
+    if page is None:
+        page = model.WikiContent(title=SETTINGS_PAGE_NAME, body=DEFAULT_SETTINGS)
+        page.put()
+    return page
+
+
 def get_all():
     global settings
     if settings is None:
-        page = model.WikiContent.gql('WHERE title = :1', SETTINGS_PAGE_NAME).get()
-        if page is None:
-            page = model.WikiContent(title=SETTINGS_PAGE_NAME, body=DEFAULT_SETTINGS)
-            page.put()
-        settings = util.parse_page(page.body)
+        settings = util.parse_page(get_host_page().body)
     return settings
 
 def get(key, default_value=None):
@@ -42,6 +47,14 @@ def check_and_flush(page):
     global settings
     if page.title == SETTINGS_PAGE_NAME:
         settings = None
+
+
+def change(upd):
+    """Modifies current settings with the contents of the upd dictionary."""
+    current = get_all()
+    current.update(upd)
+    header = util.pack_page_header(current)
+    page_content = header + u'\n---\n' + current['text']
 
 
 def get_start_page_name():
