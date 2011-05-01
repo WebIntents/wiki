@@ -6,6 +6,9 @@ clean:
 console:
 	PYTHONPATH=$(GAE_DIR):$(GAE_DIR)/lib/django_0_96 python
 
+test:
+	PYTHONPATH=$(GAE_DIR):$(GAE_DIR)/lib/django_0_96 python gaewiki/tests.py
+
 upload: .hg/gaepass
 	cat .hg/gaepass | appcfg.py -e "$(MAIL)" --passin update .
 
