@@ -89,6 +89,16 @@ class TestCase(unittest.TestCase):
         model.WikiContent(title='baz', body='labels: foo\n---\n# baz\n\nHello, world.').put()
         self.assertEquals(util.wikify('[[List:foo]]'), u'- <a class="int" href="/bar">bar</a>\n- <a class="int" href="/baz">baz</a>')
 
+    def test_children_listing(self):
+        self.assertEquals(len(model.WikiContent.get_all()), 0)
+
+        model.WikiContent(title='foo/bar').put()
+        model.WikiContent(title='foo/baz').put()
+        self.assertEquals(len(model.WikiContent.get_all()), 2)
+
+        self.assertEquals(util.wikify('[[ListChildren:foo]]'), u'- <a class="int" href="/foo/bar">foo/bar</a>\n- <a class="int" href="/foo/baz">foo/baz</a>')
+        self.assertEquals(util.wikify('[[ListChildren:]]', 'foo'), u'- <a class="int" href="/foo/bar">foo/bar</a>\n- <a class="int" href="/foo/baz">foo/baz</a>')
+
     def test_settings_changing(self):
         self.assertEquals(None, settings.get('no-such-value'))
         settings.change({ 'no-such-value': 'yes' })
