@@ -14,7 +14,7 @@ footer: gaewiki:footer
 open-reading: yes
 open-editing: no
 editors: user1@example.com, user2@example.com
-interwiki-google: http://www.google.ru/search?sourceid=chrome&ie=UTF-8&q=%s
+interwiki-google: http://www.google.ru/search?q=%s
 interwiki-wp: http://en.wikipedia.org/wiki/Special:Search?search=%s
 ---
 # gaewiki:settings

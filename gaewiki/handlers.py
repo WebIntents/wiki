@@ -161,6 +161,12 @@ class DataImportHandler(RequestHandler):
             data.update_page(title, content['body'], content['author'] and users.User(content['author']))
 
 
+class InterwikiHandler(RequestHandler):
+    def get(self):
+        iw = data.get_interwikis()
+        self.reply(view.show_interwikis(iw), 'text/html')
+
+
 handlers = [
     ('/', StartPageHandler),
     ('/robots\.txt$', RobotsHandler),
@@ -174,6 +180,7 @@ handlers = [
     ('/w/history$', PageHistoryHandler),
     ('/w/index$', IndexHandler),
     ('/w/index\.rss$', IndexFeedHandler),
+    ('/w/interwiki$', InterwikiHandler),
     ('/w/users$', UsersHandler),
     ('/(.+)$', PageHandler),
 ]

@@ -130,3 +130,9 @@ def get_users(users):
 
 def get_import_form():
     return render('import.html', { })
+
+
+def show_interwikis(iw):
+    return render('interwiki.html', {
+        'interwiki': iw,
+    })

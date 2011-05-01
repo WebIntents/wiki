@@ -123,3 +123,8 @@ def update_page(title, body, author, delete):
     # TODO: cross-link
 
     page.put()
+
+
+def get_interwikis():
+    iw = [(k[10:], v) for k, v in settings.get_all().items() if k.startswith('interwiki-')]
+    return sorted(iw, key=lambda iw: iw[0])
