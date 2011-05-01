@@ -2,6 +2,7 @@
 
 import unittest
 
+from google.appengine.api import users
 from google.appengine.ext import testbed
 
 import access
@@ -101,9 +102,11 @@ class TestCase(unittest.TestCase):
         self.assertEquals(util.wikify('[[ListChildren:]]', 'foo'), u'- <a class="int" href="/foo/bar">foo/bar</a>\n- <a class="int" href="/foo/baz">foo/baz</a>')
 
     def test_settings_changing(self):
-        self.assertEquals(None, settings.get('no-such-value'))
+        self.assertEquals(settings.get('no-such-value'), None)
         settings.change({ 'no-such-value': 'yes' })
-        self.assertEquals('yes', settings.get('no-such-value'))
+        self.assertEquals(settings.get('no-such-value'), 'yes')
+        settings.change({ 'editors': 'one, two' })
+        self.assertEquals(settings.get('editors'), [ 'one', 'two' ])
 
     def test_uurlencode_filter(self):
         self.assertEquals(util.uurlencode(None), '')
@@ -130,6 +133,95 @@ class TestCase(unittest.TestCase):
         self.assertEquals(True, access.is_page_blacklisted('Welcome'))
         settings.change({ 'page-whitelist': '.*come$' })
         self.assertEquals(False, access.is_page_blacklisted('Welcome'), 'White listing does not beat blacklisting.')
+
+    def test_edit_system_pages(self):
+        self.assertEquals(access.can_edit_page('gaewiki:settings', is_admin=True), True)
+        self.assertEquals(access.can_edit_page('gaewiki:settings', is_admin=False), False)
+
+    def test_open_editing(self):
+        self.assertEquals(access.can_edit_page('foo'), False)
+        settings.change({ 'open-editing': 'yes' })
+        self.assertEquals(access.can_edit_page('foo'), True)
+        settings.change({ 'page-blacklist': '^foo' })
+        self.assertEquals(access.can_edit_page('foo'), False)
+
+    def test_edit_orphan_page(self):
+        settings.change({ 'open-editing': 'yes' })
+        self.assertEquals(access.can_edit_page('foo/bar'), True)
+        settings.change({ 'parents-must-exist': 'yes' })
+        self.assertEquals(access.can_edit_page('foo/bar'), False)
+
+    def test_editor_access(self):
+        user = users.User('alice@example.com')
+        self.assertEquals(access.can_edit_page('foo'), False)
+        self.assertEquals(access.can_edit_page('foo', user), False)
+        settings.change({ 'editors': user.email() })
+        self.assertEquals(access.can_edit_page('foo', user), True)
+
+    def test_admin_edits(self):
+        settings.change({ 'open-editing': 'no', 'page-blacklist': '.*', 'parents-must-exist': 'yes' })
+        self.assertEquals(access.can_edit_page('foo/bar'), False)
+        self.assertEquals(access.can_edit_page('foo/bar', is_admin=True), True)
+
+    def test_edit_locked_page(self):
+        pass
+
+    def test_edit_page_with_local_editors(self):
+        pass
+
+    def test_page_reading(self):
+        user = users.User('alice@example.com')
+
+        # Unknown user, default access.
+        settings.change({ 'open-reading': None, 'readers': None, 'editors': None })
+        self.assertEquals(access.can_read_page('foo', user, False), True)
+
+        # Unknown user, private wiki.
+        settings.change({ 'open-reading': 'no', })
+        self.assertEquals(access.can_read_page('foo', user, False), False)
+
+        # A privilaged reader, private wiki.
+        settings.change({ 'open-reading': 'no', 'readers': user.email(), 'editors': None })
+        self.assertEquals(access.can_read_page('foo', user, False), True)
+
+        # A privilaged editor, private wiki.
+        settings.change({ 'open-reading': 'no', 'readers': None, 'editors': user.email() })
+        self.assertEquals(access.can_read_page('foo', user, False), True)
+
+        page = model.WikiContent(title='foo')
+
+        # An unknown user, a private wiki and a public page.
+        settings.change({ 'open-reading': 'no', 'readers': None, 'editors': None })
+        page.body = 'public: yes\n---\n# foo'
+        page.put()
+        self.assertEquals(access.can_read_page('foo', user, False), True)
+
+        # An unknown user, an open wiki and a private page.
+        settings.change({ 'open-reading': 'yes', 'readers': None, 'editors': None })
+        page.body = 'private: yes\n---\n# foo'
+        page.put()
+        self.assertEquals(access.can_read_page('foo', user, False), False)
+
+        # An open wiki, a private page with explicit access to some regular user.
+        settings.change({ 'open-reading': 'yes', 'readers': None, 'editors': None })
+        page.body = 'private: yes\nreaders: %s\n---\n# foo' % user.email()
+        page.put()
+        self.assertEquals(access.can_read_page('foo', user, False), True)
+
+    def test_access_to_special_pages(self):
+        user = users.User('alice@example.com')
+
+        settings.change({ 'open-reading': None, 'readers': None, 'editors': None })
+        self.assertEquals(access.can_see_most_pages(user, False), True)
+
+        settings.change({ 'open-reading': 'no', 'readers': None, 'editors': None })
+        self.assertEquals(access.can_see_most_pages(user, False), False)
+
+        settings.change({ 'open-reading': 'no', 'readers': user.email(), 'editors': None })
+        self.assertEquals(access.can_see_most_pages(user, False), True)
+
+        settings.change({ 'open-reading': 'no', 'readers': None, 'editors': user.email() })
+        self.assertEquals(access.can_see_most_pages(user, False), True)
 
 
 def run_tests():

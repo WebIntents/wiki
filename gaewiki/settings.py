@@ -51,10 +51,12 @@ def check_and_flush(page):
 
 def change(upd):
     """Modifies current settings with the contents of the upd dictionary."""
-    current = get_all()
+    current = dict(get_all())
     current.update(upd)
     header = util.pack_page_header(current)
-    page_content = header + u'\n---\n' + current['text']
+    page = get_host_page()
+    page.body = header + u'\n---\n' + current['text']
+    page.put()
 
 
 def get_start_page_name():
