@@ -104,6 +104,20 @@ class TestCase(unittest.TestCase):
         settings.change({ 'no-such-value': 'yes' })
         self.assertEquals('yes', settings.get('no-such-value'))
 
+    def test_uurlencode_filter(self):
+        self.assertEquals(util.uurlencode(None), '')
+        self.assertEquals(util.uurlencode('foo bar'), 'foo%20bar')
+        self.assertEquals(util.uurlencode(u'тест'), '%D1%82%D0%B5%D1%81%D1%82')
+
+    def test_get_label_url(self):
+        self.assertEquals(util.get_label_url('foo'), '/Label:foo')
+        self.assertEquals(util.get_label_url('foo bar'), '/Label:foo_bar')
+        self.assertEquals(util.get_label_url('foo, bar'), '/Label:foo%2C_bar')
+        self.assertEquals(util.get_label_url(u'тест'), '/Label:%D1%82%D0%B5%D1%81%D1%82')
+
+    def test_markdown_extensions(self):
+        self.assertEquals(util.parse_markdown('# foo'), '<h1>foo</h1>')
+
     def test_white_listing(self):
         self.assertEquals(False, access.is_page_whitelisted('Welcome'))
 

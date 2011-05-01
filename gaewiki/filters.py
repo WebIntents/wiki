@@ -1,15 +1,8 @@
 # encoding=utf-8
 
-import logging
-import re
-import urllib
-
 from google.appengine.dist import use_library
 use_library('django', '0.96')
-
 from google.appengine.ext.webapp import template
-
-from markdown import markdown as markdown_parser
 
 import util
 
@@ -19,15 +12,7 @@ register = template.create_template_register()
 
 @register.filter
 def uurlencode(value):
-    if type(value) == unicode:
-        value = value.encode('utf-8')
-    try:
-        if type(value) != str:
-            raise Exception('got \"%s\" instead of a string.' % value.__class__.__name__)
-        return urllib.quote(value)
-    except Exception, e:
-        logging.error('Error in the uurlencode filter: %s' % e)
-        return ''
+    return util.uurlencode(value)
 
 
 @register.filter
@@ -37,11 +22,7 @@ def pageurl(value):
 
 @register.filter
 def labelurl(value):
-    if type(value) == unicode:
-        value = value.encode('utf-8')
-    elif type(value) != str:
-        value = str(value)
-    return '/Label:' + urllib.quote(value.replace(' ', '_'))
+    return util.get_label_url(value)
 
 
 @register.filter
@@ -61,7 +42,7 @@ def nonestr(value):
 
 @register.filter
 def markdown(text):
-    return markdown_parser(text, setting.get('markdown-extensions', [])).strip()
+    return util.parse_markdown(text)
 
 
 @register.filter

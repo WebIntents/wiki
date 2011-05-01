@@ -4,6 +4,7 @@ import logging
 import re
 import urllib
 
+import markdown
 import model
 import settings
 
@@ -31,6 +32,10 @@ def pageurl(title):
     elif type(title) != str:
         title = str(title)
     return '/' + urllib.quote(title.replace(' ', '_'))
+
+
+def parse_markdown(text):
+    return markdown.markdown(text, settings.get('markdown-extensions', [])).strip()
 
 
 WIKI_WORD_PATTERN = re.compile('\[\[([^]|]+\|)?([^]]+)\]\]')
@@ -83,3 +88,22 @@ def pack_page_header(headers):
                 v = u', '.join(v)
             lines.append(k + u': ' + v)
     return u'\n'.join(lines)
+
+
+def uurlencode(value):
+    if type(value) == unicode:
+        value = value.encode('utf-8')
+    try:
+        if type(value) != str:
+            raise Exception('got \"%s\" instead of a string.' % value.__class__.__name__)
+        return urllib.quote(value)
+    except Exception, e:
+        return ''
+
+
+def get_label_url(value):
+    if type(value) == unicode:
+        value = value.encode('utf-8')
+    elif type(value) != str:
+        value = str(value)
+    return '/Label:' + urllib.quote(value.replace(' ', '_'))
