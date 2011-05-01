@@ -68,7 +68,7 @@ class WikiContent(db.Model):
         if self.title == 'gaewiki:settings':
             settings.flush()
         if self.is_saved():
-            self..backup()
+            self.backup()
             if delete:
                 logging.debug(u'Deleting page "%s"' % self.title)
                 self.delete()
@@ -111,7 +111,7 @@ class WikiContent(db.Model):
                 break
         if user is not None:
             template = template.replace('USER_EMAIL', user.email())
-        self.body = template.replace('PAGE_TITLE', title)
+        self.body = template.replace('PAGE_TITLE', self.title)
 
     @classmethod
     def get_by_title(cls, title):

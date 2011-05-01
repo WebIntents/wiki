@@ -10,6 +10,7 @@ from google.appengine.ext import webapp
 
 import access
 import model
+import settings
 import view
 
 
