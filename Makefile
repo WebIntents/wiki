@@ -3,6 +3,9 @@ all: rebuild
 clean:
 	find -iregex '.*\.\(pyc\|rej\|orig\)' -delete
 
+console:
+	PYTHONPATH=$(GAE_DIR):$(GAE_DIR)/lib/django_0_96 python
+
 upload: .hg/gaepass
 	cat .hg/gaepass | appcfg.py -e "$(MAIL)" --passin update .
 
