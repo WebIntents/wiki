@@ -61,10 +61,10 @@ def nonestr(value):
 
 @register.filter
 def markdown(text):
-    return markdown_parser(text)
+    return markdown_parser(text, setting.get('markdown-extensions', [])).strip()
 
 
 @register.filter
 def wikify(text):
     props = util.parse_page(text)
-    return markdown_parser(props['text'])
+    return util.wikify(markdown_parser(props['text']))

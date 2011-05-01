@@ -36,8 +36,7 @@ def pageurl(title):
 WIKI_WORD_PATTERN = re.compile('\[\[([^]|]+\|)?([^]]+)\]\]')
 
 def wikify(text, title=None):
-    text, count = WIKI_WORD_PATTERN.subn(lambda x: wikify_one(x, page_title), text)
-    text = markdown.markdown(text, setting.get('markdown-extensions', [])).strip()
+    text, count = WIKI_WORD_PATTERN.subn(lambda x: wikify_one(x, title), text)
     text = re.sub(r'\.  ', '.&nbsp; ', text)
     text = re.sub(u' (—|--) ', u'&nbsp;— ', text)
     return text
