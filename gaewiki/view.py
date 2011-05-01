@@ -25,6 +25,8 @@ def render(template_name, data):
         data['log_out_url'] = users.create_logout_url(os.environ['PATH_INFO'])
     else:
         data['log_in_url'] = users.create_login_url(os.environ['PATH_INFO'])
+    if 'is_admin' not in data:
+        data['is_admin'] = users.is_current_user_admin()
     if 'sidebar' not in data:
         data['sidebar'] = get_sidebar()
     if 'footer' not in data:
