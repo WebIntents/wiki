@@ -10,7 +10,7 @@ import settings
 
 def parse_page(page_content):
     options = {}
-    parts = page_content.split('---', 1)
+    parts = page_content.split('\n---\n', 1)
     if len(parts) == 2:
         for line in parts[0].split('\n'):
             if not line.startswith('#'):
@@ -38,7 +38,7 @@ WIKI_WORD_PATTERN = re.compile('\[\[([^]|]+\|)?([^]]+)\]\]')
 def wikify(text, title=None):
     text, count = WIKI_WORD_PATTERN.subn(lambda x: wikify_one(x, title), text)
     text = re.sub(r'\.  ', '.&nbsp; ', text)
-    text = re.sub(u' (—|--) ', u'&nbsp;— ', text)
+    text = re.sub(u' +(—|--) +', u'&nbsp;— ', text)
     return text
 
 def wikify_one(pat, real_page_title):
@@ -61,7 +61,7 @@ def wikify_one(pat, real_page_title):
                 return list_pages_by_label(parts[1])
             if parts[0] == 'ListChildren':
                 return list_pages_by_label('gaewiki:parent:' + (parts[1] or real_page_title))
-            iwlink = setting.get(u'interwiki-' + parts[0])
+            iwlink = settings.get(u'interwiki-' + parts[0])
             if iwlink:
                 return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], iwlink.replace('%s', urllib.quote(parts[1].encode('utf-8'))), page_title)
 

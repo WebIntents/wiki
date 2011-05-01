@@ -47,6 +47,17 @@ class WikiContent(db.Model):
 
     def put(self):
         """Adds the gaewiki:parent: labels transparently."""
+        if self.body is not None:
+            options = util.parse_page(self.body)
+            self.redirect = options.get('redirect')
+            self.pread = options.get('public') == 'yes' and options.get('private') != 'yes'
+            self.labels = options.get('labels', [])
+
+        self.add_implicit_labels()
+        db.Model.put(self)
+        settings.check_and_flush(self)
+
+    def add_implicit_labels(self):
         labels = [l for l in self.labels if not l.startswith('gaewiki:parent:')]
         if '/' in self.title:
             parts = self.title.split('/')[:-1]
@@ -56,8 +67,6 @@ class WikiContent(db.Model):
                 parts.pop()
                 break # remove to add recursion
         self.labels = labels
-        db.Model.put(self)
-        settings.check_and_flush(self)
 
     def backup(self):
         """Archives the current page revision."""
@@ -78,11 +87,6 @@ class WikiContent(db.Model):
         self.body = body
         self.author = WikiUser.get_or_create(author)
         self.updated = datetime.datetime.now()
-
-        options = util.parse_page(self.body)
-        self.redirect = options.get('redirect')
-        self.pread = options.get('public') == 'yes' and options.get('private') != 'yes'
-        self.labels = options.get('labels', [])
 
         # TODO: rename
         # TODO: cross-link
