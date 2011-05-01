@@ -57,6 +57,7 @@ class WikiContent(db.Model):
                 break # remove to add recursion
         self.labels = labels
         db.Model.put(self)
+        settings.check_and_flush(self)
 
     def backup(self):
         """Archives the current page revision."""
@@ -65,8 +66,6 @@ class WikiContent(db.Model):
         archive.put()
 
     def update(self, body, author, delete):
-        if self.title == 'gaewiki:settings':
-            settings.flush()
         if self.is_saved():
             self.backup()
             if delete:

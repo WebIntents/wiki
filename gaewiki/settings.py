@@ -37,9 +37,11 @@ def get(key, default_value=None):
     return get_all().get(key, default_value)
 
 
-def flush():
+def check_and_flush(page):
+    """Empties settings cache if the host page is updated."""
     global settings
-    settings = None
+    if page.title == SETTINGS_PAGE_NAME:
+        settings = None
 
 
 def get_start_page_name():
