@@ -44,3 +44,8 @@ def flush():
 
 def get_start_page_name():
     return get('start_page', 'Welcome')
+
+
+def get_interwikis():
+    iw = [(k[10:], v) for k, v in get_all().items() if k.startswith('interwiki-')]
+    return sorted(iw, key=lambda iw: iw[0])

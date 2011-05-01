@@ -37,7 +37,7 @@ def render(template_name, data):
 
 def get_sidebar():
     page_name = settings.get('sidebar', 'gaewiki:sidebar')
-    page = model.get_page_by_name(page_name)
+    page = model.WikiContent.get_by_title(page_name)
     if page.is_saved():
         body = page.body
     else:
@@ -47,7 +47,7 @@ def get_sidebar():
 
 def get_footer():
     page_name = settings.get('footer', 'gaewiki:footer')
-    page = model.get_page_by_name(page_name)
+    page = model.WikiContent.get_by_title(page_name)
     if page.is_saved():
         body = page.body
     else:

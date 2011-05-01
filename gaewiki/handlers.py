@@ -41,8 +41,8 @@ class PageHandler(RequestHandler):
             raise Exception('No such page.')
         if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
             raise Exception('Forbidden.')
-        page = model.get_page_by_name(title)
-        self.reply(view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin()), content_type='text/html')
+        page = model.WikiContent.get_by_title(title)
+        self.reply(view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin()), 'text/html')
 
 
 class StartPageHandler(PageHandler):
@@ -53,36 +53,37 @@ class StartPageHandler(PageHandler):
 class EditHandler(RequestHandler):
     def get(self):
         title = self.request.get('page')
-        page = model.get_page_by_name(title)
+        page = model.WikiContent.get_by_title(title)
         user = users.get_current_user()
         is_admin = users.is_current_user_admin()
         if not access.can_edit_page(title, user, is_admin):
             raise Exception('Forbidden.')
         if not page.is_saved():
-            page = model.get_page_template(title, user, is_admin)
-        self.reply(view.edit_page(page), content_type='text/html')
+            page.load_template(user, is_admin)
+        self.reply(view.edit_page(page), 'text/html')
 
     def post(self):
         title = urllib.unquote(str(self.request.get('name'))).decode('utf-8')
         user = users.get_current_user()
         if not access.can_edit_page(title, user, users.is_current_user_admin()):
             raise Exception('Forbidden.')
-        model.update_page(title, body=self.request.get('body'), author=user, delete=self.request.get('delete'))
+        page = model.WikiContent.get_by_title(title)
+        page.update(body=self.request.get('body'), author=user, delete=self.request.get('delete'))
         self.redirect('/' + urllib.quote(title.encode('utf-8')))
 
 
 class IndexHandler(RequestHandler):
     def get(self):
-        self.reply(view.list_pages(self.get_data()), content_type='text/html')
+        self.reply(view.list_pages(self.get_data()), 'text/html')
 
     def get_data(self):
         self.check_open_wiki()
-        return model.get_all_pages()
+        return model.WikiContent.get_all()
 
 
 class IndexFeedHandler(IndexHandler):
     def get(self):
-        self.reply(view.list_pages_feed(self.get_data()), content_type='text/html')
+        self.reply(view.list_pages_feed(self.get_data()), 'text/html')
 
 
 class PageHistoryHandler(RequestHandler):
@@ -90,7 +91,8 @@ class PageHistoryHandler(RequestHandler):
         title = self.request.get('page')
         if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
             raise Exception('Forbidden.')
-        self.reply(view.show_page_history(title, model.get_page_history(title)), content_type='text/html')
+        page = model.WikiContent.get_by_title(title)
+        self.reply(view.show_page_history(title, page.get_history()), 'text/html')
 
 
 class RobotsHandler(RequestHandler):
@@ -99,24 +101,24 @@ class RobotsHandler(RequestHandler):
         content += "User-agent: *\n"
         content += "Disallow: /gae-wiki-static/\n"
         content += "Disallow: /w/\n"
-        self.reply(content, content_type='text/plain')
+        self.reply(content, 'text/plain')
 
 
 class SitemapHandler(RequestHandler):
     def get(self):
         self.check_open_wiki()
-        pages = model.get_open_pages()
-        self.reply(view.get_sitemap(pages, host=self.request.environ['HTTP_HOST']), content_type='text/xml')
+        pages = model.WikiContent.get_publicly_readable()
+        self.reply(view.get_sitemap(pages, host=self.request.environ['HTTP_HOST']), 'text/xml')
 
 
 class ChangesHandler(RequestHandler):
     def get(self):
-        self.reply(view.get_change_list(model.get_changes()), 'text/html')
+        self.reply(view.get_change_list(model.WikiContent.get_changes()), 'text/html')
 
 
 class ChangesFeedHandler(RequestHandler):
     def get(self):
-        self.reply(view.get_change_feed(model.get_changes()), 'text/xml')
+        self.reply(view.get_change_feed(model.WikiContent.get_changes()), 'text/xml')
 
 
 class BackLinksHandler(RequestHandler):
@@ -124,13 +126,14 @@ class BackLinksHandler(RequestHandler):
         title = self.request.get('page')
         if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
             raise Exception('Forbidden.')
-        self.reply(view.get_backlinks(*model.get_backlinks(title)), 'text/html')
+        page = model.WikiContent.get_by_title(title)
+        self.reply(view.get_backlinks(page, page.get_backlinks()), 'text/html')
 
 
 class UsersHandler(RequestHandler):
     def get(self):
         self.check_open_wiki()
-        self.reply(view.get_users(model.get_users()), 'text/html')
+        self.reply(view.get_users(model.WikiUser.get_all()), 'text/html')
 
 
 class DataExportHandler(RequestHandler):
@@ -141,7 +144,7 @@ class DataExportHandler(RequestHandler):
             'author': p.author and p.author.wiki_user.email(),
             'updated': p.updated.strftime('%Y-%m-%d %H:%M:%S'),
             'body': p.body,
-        }) for p in model.get_all_pages()])
+        }) for p in model.WikiContent.get_all()])
         self.reply(simplejson.dumps(pages), 'application/json', save_as='gae-wiki.json')
 
 
@@ -158,12 +161,13 @@ class DataImportHandler(RequestHandler):
 
         loaded = simplejson.loads(self.request.get('file'))
         for title, content in loaded.items():
-            model.update_page(title, content['body'], content['author'] and users.User(content['author']))
+            page = model.WikiContent.get_by_title(title)
+            page.update(content['body'], content['author'] and users.User(content['author']))
 
 
 class InterwikiHandler(RequestHandler):
     def get(self):
-        iw = model.get_interwikis()
+        iw = settings.get_interwikis()
         self.reply(view.show_interwikis(iw), 'text/html')
 
 

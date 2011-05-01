@@ -68,6 +68,6 @@ def wikify_one(pat, real_page_title):
     return '<a class="int" href="%s">%s</a>' % (pageurl(page_name), page_title)
 
 def list_pages_by_label(label):
-    pages = model.get_by_label(label)
+    pages = model.WikiContent.get_by_label(label)
     text = u'\n'.join(['- <a class="int" href="%s">%s</a>' % (pageurl(p.title), p.title) for p in pages])
     return text
