@@ -11,11 +11,9 @@
 
 {% if revisions %}
   <p>The following revisions are available:</p>
-  {% for revision in revisions %}
-      <ul>
-        <li><a class="int" href="{{ page_title|pageurl }}?r={{ revision.key }}">Revision from {{ revision.created|date:"d.m.y, H:i"}}</a></li>
-      </ul>
-  {% endfor %}
+  <ul>{% for revision in revisions %}
+    <li><a class="int" href="{{ page_title|pageurl }}?r={{ revision.key }}">Revision from {{ revision.created|date:"d.m.y, H:i"}}</a></li>
+  {% endfor %}</ul>
 {% else %}
 <p>We have no records for this page.</p>
 {% endif %}

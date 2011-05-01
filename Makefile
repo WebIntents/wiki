@@ -1,7 +1,7 @@
 all: rebuild
 
 clean:
-	rm -f dump bulkloader-* *.pyc *.rej *.orig
+	find -iregex '.*\.\(pyc\|rej\|orig\)' -delete
 
 upload: .hg/gaepass
 	cat .hg/gaepass | appcfg.py -e "$(MAIL)" --passin update .

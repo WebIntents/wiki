@@ -2,18 +2,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
       <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-      <base href="{{ base }}"/>
       {% if settings.styles %}
         {% for style in settings.styles %}
           <link rel="stylesheet" type="text/css" href="{{ style|escape }}"/>
         {% endfor %}
       {% else %}
-        <link rel="stylesheet" type="text/css" href="/static/themes/default/style.css"/>
+        <link rel="stylesheet" type="text/css" href="/gae-wiki-static/style.css"/>
         <!--[if gte IE 6]>
-        <link rel="stylesheet" type="text/css" href="/static/themes/default/ie.css"/>
+        <link rel="stylesheet" type="text/css" href="/gae-wiki-static/ie.css"/>
         <![endif]-->
       {% endif %}
-      <link rel="shortcut icon" href="{% if settings.favicon %}{{ settings.favicon|escape }}{% else %}/static/favicon.ico{% endif %}" type="image/png" /> 
+      <link rel="shortcut icon" href="{% if settings.favicon %}{{ settings.favicon|escape }}{% else %}/gae-wiki-static/favicon.ico{% endif %}" type="image/png" /> 
       <link rel="alternate" type="application/rss+xml" title="New Pages" href="/w/index.rss" /> 
       {% block heads %}{% endblock %}
       <title>{% block title %}{{ settings.title|escape }}{% endblock %}</title>
@@ -40,9 +39,9 @@
               {% if is_admin %}
                 <a href="/w/users">Users</a>
               {% endif %}
-                <a href="{{ log_in_out_url|escape }}">Sign out</a>
+                <a href="{{ log_out_url|escape }}">Sign out</a>
             {% else %}
-              <div align="right"><a href="{{ log_in_out_url|escape }}">Log in</a></div>
+              <div align="right"><a href="{{ log_in_url|escape }}">Log in</a></div>
             {% endif %}
           </div>
         </div>
@@ -50,12 +49,12 @@
     	{% endblock %}
     {% if sidebar %}
       <div id="sidebar">
-        {{ sidebar }}
-        {% if page_exists %}
+        {{ sidebar|wikify }}
+        {% if page.is_saved %}
           <div class="tools">
             <h3>Tools</h3>
             <ul>
-              <li><a href="/w/backlinks?page={{ page_title|uurlencode }}">Pages that link here</a></li>
+              <li><a href="/w/backlinks?page={{ page.title|uurlencode }}">Pages that link here</a></li>
             </ul>
           </div>
         {% endif %}
@@ -66,10 +65,10 @@
     </div>
 		{% block footer %}
       <div id="footer">
-        {% if page_exists %}
-        <p id="pm">This page was last edited {% if page_author %}by <a href="/user:{{ page_author|uurlencode }}">{{ page_author|escape }}</a>{% else %}anonymously{% endif %} on {{ page_updated|date:"d.m.y" }} at {{ page_updated|date:"H:i" }}.</p>
+        {% if page.is_saved %}
+        <p id="pm">This page was last edited {% if page.author %}by <a href="/user:{{ page.author.wiki_user.nickname|uurlencode }}">{{ page.author.wiki_user|escape }}</a>{% else %}anonymously{% endif %} on {{ page.updated|date:"d.m.y" }} at {{ page.updated|date:"H:i" }}.</p>
         {% endif %}
-        {% if footer %}{{ footer }}{% endif %}
+        {% if footer %}{{ footer|wikify }}{% endif %}
       </div>
 		{% endblock %}
     </body>
