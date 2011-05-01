@@ -10,8 +10,7 @@ from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
-import access
-import data
+import model
 import settings
 
 
@@ -38,7 +37,7 @@ def render(template_name, data):
 
 def get_sidebar():
     page_name = settings.get('sidebar', 'gaewiki:sidebar')
-    page = data.get_page_by_name(page_name)
+    page = model.get_page_by_name(page_name)
     if page.is_saved():
         body = page.body
     else:
@@ -48,7 +47,7 @@ def get_sidebar():
 
 def get_footer():
     page_name = settings.get('footer', 'gaewiki:footer')
-    page = data.get_page_by_name(page_name)
+    page = model.get_page_by_name(page_name)
     if page.is_saved():
         body = page.body
     else:

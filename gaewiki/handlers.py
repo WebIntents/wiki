@@ -9,7 +9,7 @@ from google.appengine.api import users
 from google.appengine.ext import webapp
 
 import access
-import data
+import model
 import view
 
 
@@ -41,25 +41,25 @@ class PageHandler(RequestHandler):
             raise Exception('No such page.')
         if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
             raise Exception('Forbidden.')
-        page = data.get_page_by_name(title)
+        page = model.get_page_by_name(title)
         self.reply(view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin()), content_type='text/html')
 
 
 class StartPageHandler(PageHandler):
     def get(self):
-        self.show_page(data.get_start_page_name())
+        self.show_page(settings.get_start_page_name())
 
 
 class EditHandler(RequestHandler):
     def get(self):
         title = self.request.get('page')
-        page = data.get_page_by_name(title)
+        page = model.get_page_by_name(title)
         user = users.get_current_user()
         is_admin = users.is_current_user_admin()
         if not access.can_edit_page(title, user, is_admin):
             raise Exception('Forbidden.')
         if not page.is_saved():
-            page = data.get_page_template(title, user, is_admin)
+            page = model.get_page_template(title, user, is_admin)
         self.reply(view.edit_page(page), content_type='text/html')
 
     def post(self):
@@ -67,7 +67,7 @@ class EditHandler(RequestHandler):
         user = users.get_current_user()
         if not access.can_edit_page(title, user, users.is_current_user_admin()):
             raise Exception('Forbidden.')
-        data.update_page(title, body=self.request.get('body'), author=user, delete=self.request.get('delete'))
+        model.update_page(title, body=self.request.get('body'), author=user, delete=self.request.get('delete'))
         self.redirect('/' + urllib.quote(title.encode('utf-8')))
 
 
@@ -77,7 +77,7 @@ class IndexHandler(RequestHandler):
 
     def get_data(self):
         self.check_open_wiki()
-        return data.get_all_pages()
+        return model.get_all_pages()
 
 
 class IndexFeedHandler(IndexHandler):
@@ -90,7 +90,7 @@ class PageHistoryHandler(RequestHandler):
         title = self.request.get('page')
         if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
             raise Exception('Forbidden.')
-        self.reply(view.show_page_history(title, data.get_page_history(title)), content_type='text/html')
+        self.reply(view.show_page_history(title, model.get_page_history(title)), content_type='text/html')
 
 
 class RobotsHandler(RequestHandler):
@@ -105,18 +105,18 @@ class RobotsHandler(RequestHandler):
 class SitemapHandler(RequestHandler):
     def get(self):
         self.check_open_wiki()
-        pages = data.get_open_pages()
+        pages = model.get_open_pages()
         self.reply(view.get_sitemap(pages, host=self.request.environ['HTTP_HOST']), content_type='text/xml')
 
 
 class ChangesHandler(RequestHandler):
     def get(self):
-        self.reply(view.get_change_list(data.get_changes()), 'text/html')
+        self.reply(view.get_change_list(model.get_changes()), 'text/html')
 
 
 class ChangesFeedHandler(RequestHandler):
     def get(self):
-        self.reply(view.get_change_feed(data.get_changes()), 'text/xml')
+        self.reply(view.get_change_feed(model.get_changes()), 'text/xml')
 
 
 class BackLinksHandler(RequestHandler):
@@ -124,13 +124,13 @@ class BackLinksHandler(RequestHandler):
         title = self.request.get('page')
         if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
             raise Exception('Forbidden.')
-        self.reply(view.get_backlinks(*data.get_backlinks(title)), 'text/html')
+        self.reply(view.get_backlinks(*model.get_backlinks(title)), 'text/html')
 
 
 class UsersHandler(RequestHandler):
     def get(self):
         self.check_open_wiki()
-        self.reply(view.get_users(data.get_users()), 'text/html')
+        self.reply(view.get_users(model.get_users()), 'text/html')
 
 
 class DataExportHandler(RequestHandler):
@@ -141,7 +141,7 @@ class DataExportHandler(RequestHandler):
             'author': p.author and p.author.wiki_user.email(),
             'updated': p.updated.strftime('%Y-%m-%d %H:%M:%S'),
             'body': p.body,
-        }) for p in data.get_all_pages()])
+        }) for p in model.get_all_pages()])
         self.reply(simplejson.dumps(pages), 'application/json', save_as='gae-wiki.json')
 
 
@@ -158,12 +158,12 @@ class DataImportHandler(RequestHandler):
 
         loaded = simplejson.loads(self.request.get('file'))
         for title, content in loaded.items():
-            data.update_page(title, content['body'], content['author'] and users.User(content['author']))
+            model.update_page(title, content['body'], content['author'] and users.User(content['author']))
 
 
 class InterwikiHandler(RequestHandler):
     def get(self):
-        iw = data.get_interwikis()
+        iw = model.get_interwikis()
         self.reply(view.show_interwikis(iw), 'text/html')
 
 

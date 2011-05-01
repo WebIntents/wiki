@@ -40,3 +40,7 @@ def get(key, default_value=None):
 def flush():
     global settings
     settings = None
+
+
+def get_start_page_name():
+    return get('start_page', 'Welcome')
