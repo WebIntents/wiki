@@ -1,13 +1,26 @@
 # encoding=utf-8
 
+import re
+
 import model
 import settings
 
+
 def is_page_whitelisted(title):
-    return False
+    pattern = settings.get('page-whitelist')
+    if pattern is None:
+        return False
+    return re.match(pattern, title) is not None
+
 
 def is_page_blacklisted(title):
-    return False
+    if is_page_whitelisted(title):
+        return False
+    pattern = settings.get('page-blacklist')
+    if pattern is None:
+        return False
+    return re.match(pattern, title) is not None
+
 
 def can_edit_page(title, user, is_admin):
     if is_admin:

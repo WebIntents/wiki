@@ -17,6 +17,7 @@ class TestCase(unittest.TestCase):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
+        settings.settings = None
 
     def tearDown(self):
         self.testbed.deactivate()
@@ -120,6 +121,15 @@ class TestCase(unittest.TestCase):
 
     def test_white_listing(self):
         self.assertEquals(False, access.is_page_whitelisted('Welcome'))
+        settings.change({ 'page-whitelist': '^Wel.*' })
+        self.assertEquals(True, access.is_page_whitelisted('Welcome'))
+
+    def test_black_listing(self):
+        self.assertEquals(False, access.is_page_blacklisted('Welcome'))
+        settings.change({ 'page-blacklist': '^Wel.*' })
+        self.assertEquals(True, access.is_page_blacklisted('Welcome'))
+        settings.change({ 'page-whitelist': '.*come$' })
+        self.assertEquals(False, access.is_page_blacklisted('Welcome'), 'White listing does not beat blacklisting.')
 
 
 def run_tests():
