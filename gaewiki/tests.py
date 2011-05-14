@@ -137,6 +137,10 @@ class TestCase(unittest.TestCase):
         self.assertFalse('<h1>bar</h1>' in text)
         self.assertTrue('<h1>foo</h1>' in text)
 
+        body = 'display_title:\n---\n# foo'
+        text = util.wikify_filter(body)
+        self.assertTrue('<h1>' not in text)
+
     def test_white_listing(self):
         self.assertEquals(False, access.is_page_whitelisted('Welcome'))
         settings.change({ 'page-whitelist': '^Wel.*' })
