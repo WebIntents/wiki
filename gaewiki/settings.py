@@ -6,7 +6,7 @@ import util
 
 SETTINGS_PAGE_NAME = 'gaewiki:settings'
 
-DEFAULT_SETTINGS = """title: My Wiki
+DEFAULT_SETTINGS = """wiki_title: My Wiki
 start_page: Welcome
 admin_email: nobody@example.com
 sidebar: gaewiki:sidebar

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ title }} — {{ settings.title }}{% endblock %}
+{% block title %}{{ title }}{% if settings.wiki_title %} — {{ settings.wiki_title }}{% endif %}{% endblock %}
 {% block content %}
 <div id="pb">
   <h1>Error</h1>
