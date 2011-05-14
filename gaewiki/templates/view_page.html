@@ -2,7 +2,7 @@
 {% block heads %}{% if can_edit %}
   <link rel="alternate" type="application/x-wiki" href="/w/edit?page={{ page_title|uurlencode }}"/>
 {% endif %}{% endblock %}
-{% block title %}{{ page.title|escape }} — {{ settings.wiki_title|escape }}{% endblock %}
+{% block title %}{{ page.title|escape }}{% if settings.wiki_title %} — {{ settings.wiki_title|escape }}{% endif %}{% endblock %}
 {% block content %}
 <ul id="tabs"{% if public_page %}{% else %} class="locked"{% endif %}>
   <li class="active"><a class="view" href="{{ page.title|pageurl }}">View</a></li>

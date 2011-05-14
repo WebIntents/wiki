@@ -2,8 +2,8 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
 <atom:link href="{{ self }}" rel="self" type="application/rss+xml" />
-<title>{{ settings.wiki_title }} Updates</title>
-<description>Recent changes in {{ settings.wiki_title }}</description>
+<title>{% if settings.wiki_title %}{{ settings.wiki_title }} {% endif %}Updates</title>
+<description>Recent changes{% if settings.wiki_title %} in {{ settings.wiki_title }}{% endif %}</description>
 <link>{{ base }}/w/changes</link>
 {% for page in pages %}
 <item>
