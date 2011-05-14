@@ -40,7 +40,6 @@ class RequestHandler(webapp.RequestHandler):
             500: 'Something bad happened.',
         }
         page = model.WikiContent.get_error_page(status_code, defaults.get(status_code))
-        logging.debug(page.body)
         self.reply(view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin()), 'text/html')
 
     def handle_exception(self, e, debug_mode):
