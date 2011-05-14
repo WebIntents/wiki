@@ -13,6 +13,9 @@ import model
 import settings
 import view
 
+class NotFound(Exception): pass
+class Forbidden(Exception): pass
+
 
 class RequestHandler(webapp.RequestHandler):
     def reply(self, content, content_type='text/plain', status=200, save_as=None):
@@ -27,10 +30,15 @@ class RequestHandler(webapp.RequestHandler):
 
     def check_open_wiki(self):
         if not access.can_see_most_pages(users.get_current_user(), users.is_current_user_admin()):
-            raise Exception('Forbidden.')
+            raise Forbidden
 
     def handle_exception(self, e, debug_mode):
-        return webapp.RequestHandler.handle_exception(self, e, debug_mode)
+        if type(e) == Forbidden:
+            self.reply("Access denied, make sure you're logged in.", status=403)
+        elif type(e) == NotFound:
+            self.reply('Page not found.', status=404)
+        else:
+            return webapp.RequestHandler.handle_exception(self, e, debug_mode)
 
 
 class PageHandler(RequestHandler):
@@ -41,7 +49,7 @@ class PageHandler(RequestHandler):
         if title.startswith('w/'):
             raise Exception('No such page.')
         if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
-            raise Exception('Forbidden.')
+            raise Forbidden
         page = model.WikiContent.get_by_title(title)
         self.reply(view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin()), 'text/html')
 
@@ -58,7 +66,7 @@ class EditHandler(RequestHandler):
         user = users.get_current_user()
         is_admin = users.is_current_user_admin()
         if not access.can_edit_page(title, user, is_admin):
-            raise Exception('Forbidden.')
+            raise Forbidden
         if not page.is_saved():
             page.load_template(user, is_admin)
         self.reply(view.edit_page(page), 'text/html')
@@ -67,7 +75,7 @@ class EditHandler(RequestHandler):
         title = urllib.unquote(str(self.request.get('name'))).decode('utf-8')
         user = users.get_current_user()
         if not access.can_edit_page(title, user, users.is_current_user_admin()):
-            raise Exception('Forbidden.')
+            raise Forbidden
         page = model.WikiContent.get_by_title(title)
         page.update(body=self.request.get('body'), author=user, delete=self.request.get('delete'))
         self.redirect('/' + urllib.quote(title.encode('utf-8')))
@@ -91,7 +99,7 @@ class PageHistoryHandler(RequestHandler):
     def get(self):
         title = self.request.get('page')
         if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
-            raise Exception('Forbidden.')
+            raise Forbidden
         page = model.WikiContent.get_by_title(title)
         self.reply(view.show_page_history(title, page.get_history()), 'text/html')
 
@@ -126,7 +134,7 @@ class BackLinksHandler(RequestHandler):
     def get(self):
         title = self.request.get('page')
         if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
-            raise Exception('Forbidden.')
+            raise Forbidden
         page = model.WikiContent.get_by_title(title)
         self.reply(view.get_backlinks(page, page.get_backlinks()), 'text/html')
 
@@ -140,7 +148,7 @@ class UsersHandler(RequestHandler):
 class DataExportHandler(RequestHandler):
     def get(self):
         if not users.is_current_user_admin():
-            raise Exception('Forbidden.')
+            raise Forbidden
         pages = dict([(p.title, {
             'author': p.author and p.author.wiki_user.email(),
             'updated': p.updated.strftime('%Y-%m-%d %H:%M:%S'),
@@ -152,12 +160,12 @@ class DataExportHandler(RequestHandler):
 class DataImportHandler(RequestHandler):
     def get(self):
         if not users.is_current_user_admin():
-            raise Exception('Forbidden.')
+            raise Forbidden
         self.reply(view.get_import_form(), 'text/html')
 
     def post(self):
         if not users.is_current_user_admin():
-            raise Exception('Forbidden.')
+            raise Forbidden
         merge = self.request.get('merge') != ''
 
         loaded = simplejson.loads(self.request.get('file'))
