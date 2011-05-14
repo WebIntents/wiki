@@ -65,6 +65,7 @@ class PageHandler(RequestHandler):
             raise Exception('No such page.')
         if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
             raise Forbidden
+        title = title.replace('_', ' ')
         page = model.WikiContent.get_by_title(title)
         self.reply(view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin()), 'text/html')
 
