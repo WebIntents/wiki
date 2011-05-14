@@ -48,4 +48,4 @@ def markdown(text):
 @register.filter
 def wikify(text):
     props = util.parse_page(text)
-    return util.wikify(markdown_parser(props['text']))
+    return util.wikify(util.parse_markdown(props['text']))
