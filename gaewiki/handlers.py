@@ -15,6 +15,7 @@ import view
 
 class NotFound(Exception): pass
 class Forbidden(Exception): pass
+class BadRequest(Exception): pass
 
 
 class RequestHandler(webapp.RequestHandler):
@@ -32,13 +33,28 @@ class RequestHandler(webapp.RequestHandler):
         if not access.can_see_most_pages(users.get_current_user(), users.is_current_user_admin()):
             raise Forbidden
 
+    def show_error_page(self, status_code):
+        defaults = {
+            400: 'Bad request.',
+            403: 'Access denied, try logging in.',
+            500: 'Something bad happened.',
+        }
+        page = model.WikiContent.get_error_page(status_code, defaults.get(status_code))
+        logging.debug(page.body)
+        self.reply(view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin()), 'text/html')
+
     def handle_exception(self, e, debug_mode):
-        if type(e) == Forbidden:
-            self.reply("Access denied, make sure you're logged in.", status=403)
+        if type(e) == BadRequest:
+            self.show_error_page(400)
+        elif type(e) == Forbidden:
+            self.show_error_page(403)
         elif type(e) == NotFound:
-            self.reply('Page not found.', status=404)
-        else:
+            self.show_error_page(404)
+        elif debug_mode:
             return webapp.RequestHandler.handle_exception(self, e, debug_mode)
+        else:
+            logging.error(e)
+            self.show_error_page(500)
 
 
 class PageHandler(RequestHandler):
@@ -62,6 +78,8 @@ class StartPageHandler(PageHandler):
 class EditHandler(RequestHandler):
     def get(self):
         title = self.request.get('page')
+        if not title:
+            raise BadRequest
         page = model.WikiContent.get_by_title(title)
         user = users.get_current_user()
         is_admin = users.is_current_user_admin()

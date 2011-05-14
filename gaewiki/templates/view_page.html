@@ -10,7 +10,7 @@
   <li><a href="/w/history?page={{ page.title|uurlencode }}">History</a></li>
 </ul>
 <div class="wtabs extl" id="pb">
-  {% if page.is_saved %}
+  {% if page.body %}
     {{ page.body|wikify }}
     {% if page_options.labels %}
       <p class="categories">{% if settings.labels_text %}{{ settings.labels_text }}{% else %}Labels{% endif %}: {% for label in page_options.labels %}{% if forloop.first %}{% else %}, {% endif %}<a class="int" href="{{ label|labelurl }}">{{ label|escape }}</a>{% endfor %}.</p>

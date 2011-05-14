@@ -117,12 +117,14 @@ class WikiContent(db.Model):
         self.body = template.replace('PAGE_TITLE', self.title)
 
     @classmethod
-    def get_by_title(cls, title):
+    def get_by_title(cls, title, default_body=None):
         """Finds and loads the page by its title, creates a new one if nothing
         could be found."""
         page = cls.gql('WHERE title = :1', title).get()
         if page is None:
             page = cls(title=title)
+            if default_body is not None:
+                page.body = default_body
         return page
 
     @classmethod
@@ -149,6 +151,10 @@ class WikiContent(db.Model):
         else:
             pages = cls.gql('WHERE pread = :1 ORDER BY -updated', True).fetch(20)
         return pages
+
+    @classmethod
+    def get_error_page(cls, error_code, default_body=None):
+        return cls.get_by_title('gaewiki:error-%u' % error_code, default_body)
 
 
 class WikiRevision(db.Model):
