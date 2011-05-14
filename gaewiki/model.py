@@ -31,11 +31,23 @@ class WikiUser(db.Model):
         return wiki_user
 
 
+class WikiUserReference(db.ReferenceProperty):
+    """For some reason db.ReferenceProperty itself fails to validate
+    references, thinking that model.WikiUser != __main__.model.WikiUser,
+    whatever that means.  Disabled until a solution is found.
+    """
+    def __init__(self):
+        db.ReferenceProperty.__init__(self, WikiUser)
+
+    def validate(self, value):
+        return value
+
+
 class WikiContent(db.Model):
     """Stores current versions of pages."""
     title = db.StringProperty(required=True)
     body = db.TextProperty(required=False)
-    author = db.ReferenceProperty(WikiUser)
+    author = WikiUserReference()
     updated = db.DateTimeProperty(auto_now_add=True)
     pread = db.BooleanProperty()
     # The name of the page that this one redirects to.
