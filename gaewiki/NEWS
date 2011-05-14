@@ -1,0 +1,10 @@
+gae-wiki 1.0 (20110514)
+
+- Moved the code to the gaewiki module.
+- Unit testing added, run with "make test".
+- Page parser supports different types of line ending.
+- Custom pages for errors 400, 403, 404 and 500 (name them "gaewiki:error-400"
+  and so on).
+- Page property display_title can be used to override the main header.  Empty
+  value hides the page header.
+- Templates only use wiki_title when it's set.
