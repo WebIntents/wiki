@@ -18,6 +18,7 @@ class TestCase(unittest.TestCase):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
+        self.testbed.init_memcache_stub()
         settings.settings = None
 
     def tearDown(self):
