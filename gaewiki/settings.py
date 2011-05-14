@@ -3,6 +3,8 @@
 import model
 import util
 
+from google.appengine.api import memcache
+
 
 SETTINGS_PAGE_NAME = 'gaewiki:settings'
 
@@ -21,7 +23,6 @@ interwiki-wp: http://en.wikipedia.org/wiki/Special:Search?search=%s
 
 Edit me."""
 
-settings = None
 
 def get_host_page():
     """Returns the page that hosts the settings."""
@@ -33,10 +34,12 @@ def get_host_page():
 
 
 def get_all():
-    global settings
+    settings = memcache.get('gaewiki:settings')
     if settings is None:
         settings = util.parse_page(get_host_page().body)
+        memcache.set('gaewiki:settings', settings)
     return settings
+
 
 def get(key, default_value=None):
     return get_all().get(key, default_value)
@@ -44,9 +47,8 @@ def get(key, default_value=None):
 
 def check_and_flush(page):
     """Empties settings cache if the host page is updated."""
-    global settings
     if page.title == SETTINGS_PAGE_NAME:
-        settings = None
+        memcache.delete('gaewiki:settings')
 
 
 def change(upd):
