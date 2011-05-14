@@ -40,6 +40,14 @@ class TestCase(unittest.TestCase):
         self.assertEquals(args.get('keys'), ['one', 'two'])
         self.assertEquals(args.get('text'), 'hello, world.')
 
+        # windows line endings
+        args = util.parse_page('key: value\nkeys: one, two\n#ignore: me\r\n---\r\nhello, world.')
+        self.assertEquals(3, len(args))
+
+        # old mac line endings
+        args = util.parse_page('key: value\nkeys: one, two\n#ignore: me\r---\rhello, world.')
+        self.assertEquals(3, len(args))
+
     def test_page_url(self):
         """Makes sure we can build correct page URLs."""
         self.assertEquals('/foo', util.pageurl('foo'))

@@ -11,9 +11,9 @@ import settings
 
 def parse_page(page_content):
     options = {}
-    parts = page_content.split('\n---\n', 1)
+    parts = re.split('[\r\n]+---[\r\n]+', page_content, 1)
     if len(parts) == 2:
-        for line in parts[0].split('\n'):
+        for line in re.split('[\r\n]+', parts[0]):
             if not line.startswith('#'):
                 kv = line.split(':', 1)
                 if len(kv) == 2:
