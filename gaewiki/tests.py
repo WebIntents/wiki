@@ -130,6 +130,12 @@ class TestCase(unittest.TestCase):
     def test_markdown_extensions(self):
         self.assertEquals(util.parse_markdown('# foo'), '<h1>foo</h1>')
 
+    def test_display_title(self):
+        body = 'display_title: foo\n---\n# bar'
+        text = util.wikify_filter(body)
+        self.assertFalse('<h1>bar</h1>' in text)
+        self.assertTrue('<h1>foo</h1>' in text)
+
     def test_white_listing(self):
         self.assertEquals(False, access.is_page_whitelisted('Welcome'))
         settings.change({ 'page-whitelist': '^Wel.*' })

@@ -1,5 +1,6 @@
 # encoding=utf-8
 
+import cgi
 import logging
 import re
 import urllib
@@ -32,6 +33,16 @@ def pageurl(title):
     elif type(title) != str:
         title = str(title)
     return '/' + urllib.quote(title.replace(' ', '_'))
+
+
+def wikify_filter(text):
+    props = parse_page(text)
+    text = parse_markdown(props['text'])
+    if 'display_title' in props:
+        text = re.sub('<h1>(.+)</h1>',
+            u'<h1>%s</h1>' % cgi.escape(props['display_title']),
+            text)
+    return wikify(text)
 
 
 def parse_markdown(text):
