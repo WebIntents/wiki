@@ -39,9 +39,10 @@ def wikify_filter(text):
     props = parse_page(text)
     text = parse_markdown(props['text'])
     if 'display_title' in props:
-        text = re.sub('<h1>(.+)</h1>',
-            u'<h1>%s</h1>' % cgi.escape(props['display_title']),
-            text)
+        new = u'<h1>%s</h1>' % cgi.escape(props['display_title'])
+        if not props['display_title'].strip():
+            new = ''
+        text = re.sub('<h1>(.+)</h1>', new, text)
     return wikify(text)
 
 
