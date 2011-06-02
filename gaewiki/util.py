@@ -2,6 +2,7 @@
 
 import cgi
 import logging
+import os
 import re
 import urllib
 
@@ -119,3 +120,10 @@ def get_label_url(value):
     elif type(value) != str:
         value = str(value)
     return '/Label:' + urllib.quote(value.replace(' ', '_'))
+
+
+def get_base_url():
+    url = 'http://' + os.environ['HTTP_HOST']
+    if url.endswith(':80'):
+        url = url[:-3]
+    return url

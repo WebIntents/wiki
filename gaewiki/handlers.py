@@ -11,6 +11,7 @@ from google.appengine.ext import webapp
 import access
 import model
 import settings
+import util
 import view
 
 class NotFound(Exception): pass
@@ -128,7 +129,7 @@ class PageHistoryHandler(RequestHandler):
 
 class RobotsHandler(RequestHandler):
     def get(self):
-        content = "Sitemap: http://%s/sitemap.xml\n" % (self.request.environ['HTTP_HOST'])
+        content = "Sitemap: %s/sitemap.xml\n" % util.get_base_url()
         content += "User-agent: *\n"
         content += "Disallow: /gae-wiki-static/\n"
         content += "Disallow: /w/\n"
@@ -139,7 +140,7 @@ class SitemapHandler(RequestHandler):
     def get(self):
         self.check_open_wiki()
         pages = model.WikiContent.get_publicly_readable()
-        self.reply(view.get_sitemap(pages, host=self.request.environ['HTTP_HOST']), 'text/xml')
+        self.reply(view.get_sitemap(pages), 'text/xml')
 
 
 class ChangesHandler(RequestHandler):

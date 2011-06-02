@@ -13,6 +13,7 @@ from google.appengine.ext.webapp import template
 import access
 import model
 import settings
+import util
 
 
 def render(template_name, data):
@@ -33,7 +34,8 @@ def render(template_name, data):
         data['footer'] = get_footer()
     if 'settings' not in data:
         data['settings'] = settings.get_all()
-    logging.debug(data)
+    if 'base' not in data:
+        data['base'] = util.get_base_url()
     return template.render(filename, data)
 
 
@@ -96,10 +98,9 @@ def show_page_history(title, revisions):
     })
 
 
-def get_sitemap(pages, host):
+def get_sitemap(pages):
     return render('sitemap.xml', {
         'pages': pages,
-        'hostname': host,
     })
 
 
