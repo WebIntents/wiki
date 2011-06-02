@@ -6,6 +6,8 @@ gae-wiki 1.1
 - The /w/index.rss feed shows new pages first.
 - Fixed absolute URLs in RSS, sitemap.xml and robots.txt.
 - display_title is used in page titles and RSS.
+- Added support for podcasting (page properties file, file_size, file_type, see
+  wiki for details).
 
 
 gae-wiki 1.0 (20110514)

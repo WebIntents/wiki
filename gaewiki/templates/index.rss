@@ -12,7 +12,9 @@
 <guid>{{ base }}{{ item.title|pageurl }}</guid>
 <pubDate>{{ item.updated|date:"r" }}</pubDate>
 <author>{{ item.author.get_public_email|escape }}</author>
-</item>
+{% if item.get_file %}
+<enclosure url="{{ item.get_file|escape }}" type="{{ item.get_file_type|escape }}"{% if item.get_file_length %} length="{{ item.get_file_length|escape }}"{% endif %}/>
+{% endif %}</item>
 {% endfor %}
 </channel>
 </rss>

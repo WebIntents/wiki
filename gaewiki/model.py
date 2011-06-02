@@ -97,6 +97,22 @@ class WikiContent(db.Model):
     def get_display_title(self):
         return self.get_property('display_title', self.title)
 
+    def get_file(self):
+        return self.get_property('file')
+
+    def get_file_type(self):
+        filetype = self.get_property('file_type')
+        if filetype is None:
+            url = self.get_file() or ''
+            if url.endswith('.mp3'):
+                return 'audio/mpeg'
+            if url.endswith('.ogg'):
+                return 'audio/vorbis'
+        return filetype or 'application/octet-stream'
+
+    def get_file_length(self):
+        return self.get_property('file_length')
+
     def put(self):
         """Adds the gaewiki:parent: labels transparently."""
         if self.body is not None:
