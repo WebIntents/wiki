@@ -108,7 +108,7 @@ def uurlencode(value):
     try:
         if type(value) != str:
             raise Exception('got \"%s\" instead of a string.' % value.__class__.__name__)
-        return urllib.quote(value)
+        return urllib.quote(value.replace(' ', '_'))
     except Exception, e:
         return ''
 

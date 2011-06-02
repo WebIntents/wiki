@@ -158,6 +158,7 @@ class WikiContent(db.Model):
     def get_by_title(cls, title, default_body=None):
         """Finds and loads the page by its title, creates a new one if nothing
         could be found."""
+        title = title.replace('_', ' ')
         page = cls.gql('WHERE title = :1', title).get()
         if page is None:
             page = cls(title=title)

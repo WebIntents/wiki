@@ -119,7 +119,7 @@ class TestCase(unittest.TestCase):
 
     def test_uurlencode_filter(self):
         self.assertEquals(util.uurlencode(None), '')
-        self.assertEquals(util.uurlencode('foo bar'), 'foo%20bar')
+        self.assertEquals(util.uurlencode('foo bar'), 'foo_bar')
         self.assertEquals(util.uurlencode(u'тест'), '%D1%82%D0%B5%D1%81%D1%82')
 
     def test_get_label_url(self):
@@ -267,6 +267,14 @@ class TestCase(unittest.TestCase):
         self.assertEquals(len(nickname), 9)
         self.assertTrue(nickname.startswith('alice'))
         self.assertTrue(nickname[-4:].isdigit())
+
+    def test_underscores_in_titles(self):
+        p1 = model.WikiContent(title='Hello World')
+        p1.put()
+
+        p2 = model.WikiContent.get_by_title('Hello_World')
+        self.assertEquals(p1.key(), p2.key())
+
 
 
 def run_tests():
