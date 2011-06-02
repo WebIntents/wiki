@@ -7,7 +7,7 @@
 <link>{{ base }}/w/index</link>
 {% for item in pages %}
 <item>
-<title>{{ item.title|escape }}</title>
+<title>{{ item.get_display_title|escape }}</title>
 <link>{{ base }}{{ item.title|pageurl }}</link>
 <guid>{{ base }}{{ item.title|pageurl }}</guid>
 <pubDate>{{ item.updated|date:"r" }}</pubDate>

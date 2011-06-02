@@ -5,6 +5,7 @@ gae-wiki 1.1
 - Spaces in URLs are now replaced with underscores.
 - The /w/index.rss feed shows new pages first.
 - Fixed absolute URLs in RSS, sitemap.xml and robots.txt.
+- display_title is used in page titles and RSS.
 
 
 gae-wiki 1.0 (20110514)

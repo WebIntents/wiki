@@ -7,7 +7,7 @@
 <link>{{ base }}/w/changes</link>
 {% for page in pages %}
 <item>
-<title>{{ page.title|escape }}</title>
+<title>{{ page.get_display_title|escape }}</title>
 <link>{{ base }}{{ page.title|pageurl }}</link>
 <guid>{{ base }}{{ page.title|pageurl }}</guid>
 <pubDate>{{ page.created|date:"r" }}</pubDate>

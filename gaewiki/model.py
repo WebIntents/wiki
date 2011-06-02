@@ -85,6 +85,18 @@ class WikiContent(db.Model):
     # Pages that this one links to.
     links = db.StringListProperty()
 
+    def __init__(self, *args, **kwargs):
+        super(WikiContent, self).__init__(*args, **kwargs)
+        self._parsed_page = None
+
+    def get_property(self, key, default=None):
+        if self._parsed_page is None:
+            self._parsed_page = self.parse_body(self.body or '')
+        return self._parsed_page.get(key, default)
+
+    def get_display_title(self):
+        return self.get_property('display_title', self.title)
+
     def put(self):
         """Adds the gaewiki:parent: labels transparently."""
         if self.body is not None:
