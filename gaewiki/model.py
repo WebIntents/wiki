@@ -3,6 +3,7 @@
 import datetime
 import logging
 import random
+import re
 
 from google.appengine.api import users
 from google.appengine.ext import db
@@ -199,6 +200,23 @@ class WikiContent(db.Model):
     @classmethod
     def get_error_page(cls, error_code, default_body=None):
         return cls.get_by_title('gaewiki:error-%u' % error_code, default_body)
+
+    @staticmethod
+    def parse_body(page_content):
+        options = {}
+        parts = re.split('[\r\n]+---[\r\n]+', page_content, 1)
+        if len(parts) == 2:
+            for line in re.split('[\r\n]+', parts[0]):
+                if not line.startswith('#'):
+                    kv = line.split(':', 1)
+                    if len(kv) == 2:
+                        k = kv[0].strip()
+                        v = kv[1].strip()
+                        if k.endswith('s'):
+                            v = re.split(',\s*', v)
+                        options[k] = v
+        options['text'] = parts[-1]
+        return options
 
 
 class WikiRevision(db.Model):

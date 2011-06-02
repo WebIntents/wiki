@@ -12,20 +12,7 @@ import settings
 
 
 def parse_page(page_content):
-    options = {}
-    parts = re.split('[\r\n]+---[\r\n]+', page_content, 1)
-    if len(parts) == 2:
-        for line in re.split('[\r\n]+', parts[0]):
-            if not line.startswith('#'):
-                kv = line.split(':', 1)
-                if len(kv) == 2:
-                    k = kv[0].strip()
-                    v = kv[1].strip()
-                    if k.endswith('s'):
-                        v = re.split(',\s*', v)
-                    options[k] = v
-    options['text'] = parts[-1]
-    return options
+    return model.WikiContent.parse_body(page_content)
 
 
 def pageurl(title):
