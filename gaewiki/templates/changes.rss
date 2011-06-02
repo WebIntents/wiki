@@ -7,11 +7,11 @@
 <link>{{ base }}/w/changes</link>
 {% for page in pages %}
 <item>
-<title>{{ page.title }}</title>
-<link>{{ base }}/{{ page.title }}</link>
-<guid>{{ base }}/{{ page.title }}</guid>
+<title>{{ page.title|escape }}</title>
+<link>{{ base }}/{{ page.title|uurlencode }}</link>
+<guid>{{ base }}/{{ page.title|uurlencode }}</guid>
 <pubDate>{{ page.created|date:"r" }}</pubDate>
-<author>{{ page.author.get_public_email }}</author>
+<author>{{ page.author.get_public_email|escape }}</author>
 </item>
 {% endfor %}
 </channel>

@@ -7,11 +7,11 @@
 <link>{{ base }}/w/index</link>
 {% for item in pages %}
 <item>
-<title>{{ item.title }}</title>
-<link>{{ base }}/{{ item.title }}</link>
-<guid>{{ base }}/{{ item.title }}</guid>
+<title>{{ item.title|escape }}</title>
+<link>{{ base }}/{{ item.title|uurlencode }}</link>
+<guid>{{ base }}/{{ item.title|uurlencode }}</guid>
 <pubDate>{{ item.updated|date:"r" }}</pubDate>
-<author>{{ item.author.get_public_email }}</author>
+<author>{{ item.author.get_public_email|escape }}</author>
 </item>
 {% endfor %}
 </channel>

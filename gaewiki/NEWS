@@ -1,6 +1,7 @@
 gae-wiki 1.1
 
 - Fixed issue 40: users now have custom nicknames, editable at /w/profile.
+- Fixed escaping of URLs and emails in RSS.
 
 
 gae-wiki 1.0 (20110514)
