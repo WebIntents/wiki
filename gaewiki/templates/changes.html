@@ -29,7 +29,7 @@
         </td>
         <td>
           {% if page.author %}
-            <a href="/user:{{ page.author.get_nickname|uurlencode }}">{{ page.author.get_nickname|escape }}</a>
+            <a href="/user%3A{{ page.author.get_nickname|uurlencode }}">{{ page.author.get_nickname|escape }}</a>
           {% endif %}
         </td>
       </tr>
