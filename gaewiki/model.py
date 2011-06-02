@@ -75,6 +75,7 @@ class WikiContent(db.Model):
     body = db.TextProperty(required=False)
     author = WikiUserReference()
     updated = db.DateTimeProperty(auto_now_add=True)
+    created = db.DateTimeProperty(auto_now_add=True)
     pread = db.BooleanProperty()
     # The name of the page that this one redirects to.
     redirect = db.StringProperty()
@@ -182,6 +183,10 @@ class WikiContent(db.Model):
     @classmethod
     def get_all(cls):
         return sorted(cls.all().order('title').fetch(1000), key=lambda p: p.title.lower())
+
+    @classmethod
+    def get_recently_added(cls, limit=100):
+        return cls.all().order('-created').fetch(limit)
 
     @classmethod
     def get_changes(cls):

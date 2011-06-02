@@ -112,6 +112,10 @@ class IndexFeedHandler(IndexHandler):
     def get(self):
         self.reply(view.list_pages_feed(self.get_data()), 'text/html')
 
+    def get_data(self):
+        self.check_open_wiki()
+        return model.WikiContent.get_recently_added()
+
 
 class PageHistoryHandler(RequestHandler):
     def get(self):
