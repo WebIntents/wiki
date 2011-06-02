@@ -201,6 +201,7 @@ table.forms tbody th {
   font-weight: normal;
   text-align: right;
   vertical-align: top;
+  line-height: 1.5em;
 }
 table.forms .text {
   width: 500px;
@@ -208,6 +209,13 @@ table.forms .text {
 }
 form div {
 	margin: 0 0 .5em;
+}
+table.forms p.hint {
+  margin: .25em 0 0;
+  font-style: italic;
+  border: none;
+  color: gray;
+  cursor: inherit;
 }
 
 

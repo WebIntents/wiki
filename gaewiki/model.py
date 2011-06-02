@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+import random
 
 from google.appengine.api import users
 from google.appengine.ext import db
@@ -15,6 +16,23 @@ class WikiUser(db.Model):
     joined = db.DateTimeProperty(auto_now_add=True)
     wiki_user_picture = db.BlobProperty()
     user_feed = db.StringProperty()
+    nickname = db.StringProperty()
+    public_email = db.StringProperty()
+
+    def get_nickname(self):
+        if self.nickname:
+            return self.nickname
+        return self.wiki_user.email().split('@', 1)[0]
+
+    def get_public_email(self):
+        return self.public_email or self.wiki_user.email()
+
+    def put(self):
+        if self.nickname:
+            other = self.gql('WHERE nickname = :1', self.nickname).get()
+            if other is not None and other.key() != self.key():
+                raise RuntimeError('This nickname is already taken, please choose a different one.')
+        return super(WikiUser, self).put()
 
     @classmethod
     def get_all(cls):
@@ -27,8 +45,16 @@ class WikiUser(db.Model):
         wiki_user = cls.gql('WHERE wiki_user = :1', user).get()
         if wiki_user is None:
             wiki_user = cls(wiki_user=user)
+            wiki_user.nickname = cls.get_unique_nickname(wiki_user)
             wiki_user.put()
         return wiki_user
+
+    @classmethod
+    def get_unique_nickname(cls, user):
+        nickname = user.get_nickname()
+        while cls.gql('WHERE nickname = :1', nickname).get() is not None:
+            nickname = user.get_nickname() + str(random.randrange(1111, 9999))
+        return nickname
 
 
 class WikiUserReference(db.ReferenceProperty):

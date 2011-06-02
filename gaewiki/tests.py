@@ -242,6 +242,32 @@ class TestCase(unittest.TestCase):
         settings.change({ 'open-reading': 'no', 'readers': None, 'editors': user.email() })
         self.assertEquals(access.can_see_most_pages(user, False), True)
 
+    def test_custom_nickname(self):
+        u1 = users.User('alice@example.com')
+        w1 = model.WikiUser.get_or_create(u1)
+        self.assertEquals(w1.get_nickname(), 'alice')
+
+        w1.nickname = 'bob'
+        self.assertEquals(w1.get_nickname(), 'bob')
+
+    def test_custom_public_email(self):
+        u1 = users.User('alice@example.com')
+        w1 = model.WikiUser.get_or_create(u1)
+        self.assertEquals(w1.get_public_email(), 'alice@example.com')
+
+        w1.public_email = 'bob@example.com'
+        self.assertEquals(w1.get_public_email(), 'bob@example.com')
+
+    def test_unique_nicknames(self):
+        u1 = model.WikiUser.get_or_create(users.User('alice@example.com'))
+        self.assertEquals(u1.get_nickname(), 'alice')
+
+        u2 = model.WikiUser.get_or_create(users.User('alice@example.net'))
+        nickname = u2.get_nickname()
+        self.assertEquals(len(nickname), 9)
+        self.assertTrue(nickname.startswith('alice'))
+        self.assertTrue(nickname[-4:].isdigit())
+
 
 def run_tests():
     suite = unittest.TestSuite()

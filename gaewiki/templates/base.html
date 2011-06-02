@@ -33,7 +33,7 @@
         <div class="top">
           <div class="login">
             {% if user %}
-              <strong><a href="/user:{{ user.nickname|uurlencode }}">{{ user.nickname|escape }}</a></strong>
+              <strong><a href="/w/profile">{{ user.get_nickname|escape }}</a></strong>
               <a href="/w/index">Index</a>
               <a href="/w/changes">Changes</a>
               {% if is_admin %}
@@ -66,7 +66,7 @@
 		{% block footer %}
       <div id="footer">
         {% if page.is_saved %}
-        <p id="pm">This page was last edited {% if page.author %}by <a href="/user:{{ page.author.wiki_user.nickname|uurlencode }}">{{ page.author.wiki_user|escape }}</a>{% else %}anonymously{% endif %} on {{ page.updated|date:"d.m.y" }} at {{ page.updated|date:"H:i" }}.</p>
+        <p id="pm">This page was last edited {% if page.author.get_nickname %}by <a href="/user:{{ page.author.get_nickname|uurlencode }}">{{ page.author.get_nickname|escape }}</a>{% else %}anonymously{% endif %} on {{ page.updated|date:"d.m.y" }} at {{ page.updated|date:"H:i" }}.</p>
         {% endif %}
         {% if footer %}{{ footer|wikify }}{% endif %}
       </div>

@@ -1,3 +1,8 @@
+gae-wiki 1.1
+
+- Fixed issue 40: users now have custom nicknames, editable at /w/profile.
+
+
 gae-wiki 1.0 (20110514)
 
 - Moved the code to the gaewiki module.

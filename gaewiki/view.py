@@ -20,7 +20,7 @@ def render(template_name, data):
     if not os.path.exists(filename):
         raise Exception('Template %s not found.' % template_name)
     if 'user' not in data:
-        data['user'] = users.get_current_user()
+        data['user'] = model.WikiUser.get_or_create(users.get_current_user())
     if data['user']:
         data['log_out_url'] = users.create_logout_url(os.environ['PATH_INFO'])
     else:
@@ -33,6 +33,7 @@ def render(template_name, data):
         data['footer'] = get_footer()
     if 'settings' not in data:
         data['settings'] = settings.get_all()
+    logging.debug(data)
     return template.render(filename, data)
 
 
@@ -59,7 +60,6 @@ def get_footer():
 def view_page(page, user=None, is_admin=False):
     data = {
         'page': page,
-        'user': user,
         'is_admin': is_admin,
         'can_edit': access.can_edit_page(page.title, user, is_admin),
     }
@@ -135,4 +135,10 @@ def get_import_form():
 def show_interwikis(iw):
     return render('interwiki.html', {
         'interwiki': iw,
+    })
+
+
+def show_profile(wiki_user):
+    return render('profile.html', {
+        'user': wiki_user,
     })

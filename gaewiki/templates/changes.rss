@@ -11,7 +11,7 @@
 <link>{{ base }}/{{ page.title }}</link>
 <guid>{{ base }}/{{ page.title }}</guid>
 <pubDate>{{ page.created|date:"r" }}</pubDate>
-<author>{{ page.author.wiki_user }}</author>
+<author>{{ page.author.get_public_email }}</author>
 </item>
 {% endfor %}
 </channel>

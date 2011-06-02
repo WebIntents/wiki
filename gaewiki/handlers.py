@@ -198,6 +198,26 @@ class InterwikiHandler(RequestHandler):
         self.reply(view.show_interwikis(iw), 'text/html')
 
 
+class ProfileHandler(RequestHandler):
+    """Implements personal profile pages."""
+    def get(self):
+        user = users.get_current_user()
+        if user is None:
+            raise Forbidden
+        wiki_user = model.WikiUser.get_or_create(user)
+        self.reply(view.show_profile(wiki_user), 'text/html')
+
+    def post(self):
+        user = users.get_current_user()
+        if user is None:
+            raise Forbidden
+        wiki_user = model.WikiUser.get_or_create(user)
+        wiki_user.nickname = self.request.get('nickname')
+        wiki_user.public_email = self.request.get('email')
+        wiki_user.put()
+        self.redirect('/w/profile')
+
+
 handlers = [
     ('/', StartPageHandler),
     ('/robots\.txt$', RobotsHandler),
@@ -212,6 +232,7 @@ handlers = [
     ('/w/index$', IndexHandler),
     ('/w/index\.rss$', IndexFeedHandler),
     ('/w/interwiki$', InterwikiHandler),
+    ('/w/profile', ProfileHandler),
     ('/w/users$', UsersHandler),
     ('/(.+)$', PageHandler),
 ]

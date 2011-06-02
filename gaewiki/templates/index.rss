@@ -11,7 +11,7 @@
 <link>{{ base }}/{{ item.title }}</link>
 <guid>{{ base }}/{{ item.title }}</guid>
 <pubDate>{{ item.updated|date:"r" }}</pubDate>
-<author>{{ item.author.wiki_user }}</author>
+<author>{{ item.author.get_public_email }}</author>
 </item>
 {% endfor %}
 </channel>
