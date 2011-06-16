@@ -75,8 +75,8 @@ def wikify_one(pat, real_page_title):
 
 def list_pages_by_label(label):
     pages = model.WikiContent.get_by_label(label)
-    text = u'\n'.join(['- <a class="int" href="%s">%s</a>' % (pageurl(p.redirect or p.title), p.get_property('display_title', p.title)) for p in pages])
-    return text
+    text = u''.join([u'<li><a class="int" href="%s">%s</a></li>' % (pageurl(p.redirect or p.title), p.get_property('display_title', p.title)) for p in pages])
+    return u'<ul class="labellist">%s</ul>' % text
 
 
 def pack_page_header(headers):
