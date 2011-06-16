@@ -15,3 +15,9 @@ indexes:
   properties:
   - name: labels
   - name: title
+
+- kind: WikiContent
+  properties:
+  - name: labels
+  - name: created
+    direction: desc
