@@ -8,6 +8,7 @@ gae-wiki 1.1
 - display_title is used in page titles and RSS.
 - Added support for podcasting (page properties file, file_size, file_type, see
   wiki for details).
+- The locked:yes property now works.
 
 
 gae-wiki 1.0 (20110514)
