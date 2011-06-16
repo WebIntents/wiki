@@ -11,6 +11,7 @@ gae-wiki 1.1
 - The locked:yes property now works.
 - Disabled external URL decoration.
 - Fixed page labels not being shown.
+- Added label RSS feeds (/w/pages.rss?label=xyz).
 
 
 gae-wiki 1.0 (20110514)

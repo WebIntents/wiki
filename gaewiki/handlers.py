@@ -118,6 +118,12 @@ class IndexFeedHandler(IndexHandler):
         return model.WikiContent.get_recently_added()
 
 
+class PagesFeedHandler(IndexFeedHandler):
+    def get_data(self):
+        self.check_open_wiki()
+        return model.WikiContent.get_recent_by_label(self.request.get('label'))
+
+
 class PageHistoryHandler(RequestHandler):
     def get(self):
         title = self.request.get('page')
@@ -237,6 +243,7 @@ handlers = [
     ('/w/index$', IndexHandler),
     ('/w/index\.rss$', IndexFeedHandler),
     ('/w/interwiki$', InterwikiHandler),
+    ('/w/pages\.rss', PagesFeedHandler),
     ('/w/profile', ProfileHandler),
     ('/w/users$', UsersHandler),
     ('/(.+)$', PageHandler),

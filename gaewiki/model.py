@@ -222,6 +222,10 @@ class WikiContent(db.Model):
         return cls.all().order('-created').fetch(limit)
 
     @classmethod
+    def get_recent_by_label(cls, label, limit=100):
+        return cls.gql('WHERE labels = :1 ORDER BY created DESC', label).fetch(limit)
+
+    @classmethod
     def get_changes(cls):
         if settings.get('open-reading') == 'yes':
             pages = cls.all().order('-updated').fetch(20)
