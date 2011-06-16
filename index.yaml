@@ -10,3 +10,8 @@ indexes:
   - name: title
   - name: created
     direction: desc
+
+- kind: WikiContent
+  properties:
+  - name: labels
+  - name: title
