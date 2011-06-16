@@ -60,6 +60,7 @@ def get_footer():
 
 
 def view_page(page, user=None, is_admin=False):
+    page = page.get_redirected()
     data = {
         'page': page,
         'is_admin': is_admin,

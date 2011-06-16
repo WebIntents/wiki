@@ -9,6 +9,7 @@ import access
 import model
 import settings
 import util
+import view
 
 
 class TestCase(unittest.TestCase):
@@ -123,10 +124,10 @@ class TestCase(unittest.TestCase):
         self.assertEquals(util.uurlencode(u'тест'), '%D1%82%D0%B5%D1%81%D1%82')
 
     def test_get_label_url(self):
-        self.assertEquals(util.get_label_url('foo'), '/Label:foo')
-        self.assertEquals(util.get_label_url('foo bar'), '/Label:foo_bar')
-        self.assertEquals(util.get_label_url('foo, bar'), '/Label:foo%2C_bar')
-        self.assertEquals(util.get_label_url(u'тест'), '/Label:%D1%82%D0%B5%D1%81%D1%82')
+        self.assertEquals(util.get_label_url('foo'), '/Label%3Afoo')
+        self.assertEquals(util.get_label_url('foo bar'), '/Label%3Afoo_bar')
+        self.assertEquals(util.get_label_url('foo, bar'), '/Label%3Afoo%2C_bar')
+        self.assertEquals(util.get_label_url(u'тест'), '/Label%3A%D1%82%D0%B5%D1%81%D1%82')
 
     def test_markdown_extensions(self):
         self.assertEquals(util.parse_markdown('# foo'), '<h1>foo</h1>')
@@ -278,6 +279,16 @@ class TestCase(unittest.TestCase):
         p2 = model.WikiContent.get_by_title('Hello_World')
         self.assertEquals(p1.key(), p2.key())
 
+    def test_page_redirect(self):
+        """Makes sure that redirects are supported when displaying pages."""
+        page1 = model.WikiContent(title='page1', body='redirect: page2\n---\n# page1')
+        page1.put()
+
+        page2 = model.WikiContent(title='page2', body='# page2')
+        page2.put()
+
+        html = view.view_page(page1)
+        print html
 
 
 def run_tests():

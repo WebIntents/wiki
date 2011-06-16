@@ -188,6 +188,14 @@ class WikiContent(db.Model):
         """Returns True if the page has the locked:yes property."""
         return self.get_property('locked') == 'yes'
 
+    def get_redirected(self):
+        """Returns the page that this one redirects to (if at all)."""
+        if self.redirect:
+            page = self.get_by_title(self.redirect)
+            if page.is_saved():
+                return page
+        return self
+
     @classmethod
     def get_by_title(cls, title, default_body=None):
         """Finds and loads the page by its title, creates a new one if nothing

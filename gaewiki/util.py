@@ -75,7 +75,7 @@ def wikify_one(pat, real_page_title):
 
 def list_pages_by_label(label):
     pages = model.WikiContent.get_by_label(label)
-    text = u'\n'.join(['- <a class="int" href="%s">%s</a>' % (pageurl(p.title), p.get_property('display_title', p.title)) for p in pages])
+    text = u'\n'.join(['- <a class="int" href="%s">%s</a>' % (pageurl(p.redirect or p.title), p.get_property('display_title', p.title)) for p in pages])
     return text
 
 
@@ -102,11 +102,16 @@ def uurlencode(value):
 
 
 def get_label_url(value):
-    if type(value) == unicode:
-        value = value.encode('utf-8')
-    elif type(value) != str:
-        value = str(value)
-    return '/Label:' + urllib.quote(value.replace(' ', '_'))
+    """Returns a URL to the label page.  Supports redirects."""
+    if type(value) == str:
+        value = value.decode('utf-8')
+    value = u'Label:' + value
+
+    page = model.WikiContent.get_by_title(value)
+    if page.is_saved() and page.redirect:
+        value = page.redirect
+
+    return '/' + urllib.quote(value.replace(' ', '_').encode('utf-8'))
 
 
 def get_base_url():
