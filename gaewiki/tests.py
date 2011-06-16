@@ -183,7 +183,10 @@ class TestCase(unittest.TestCase):
         self.assertEquals(access.can_edit_page('foo/bar', is_admin=True), True)
 
     def test_edit_locked_page(self):
-        pass
+        """Make sure that locked pages aren't editable."""
+        model.WikiContent(title='foo', body='locked: yes\n---\n# foo').put()
+        settings.change({ 'open-editing': 'yes', 'open-reading': 'yes' })
+        self.assertEquals(access.can_edit_page('foo', is_admin=False), False)
 
     def test_edit_page_with_local_editors(self):
         pass

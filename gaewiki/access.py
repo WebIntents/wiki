@@ -30,8 +30,6 @@ def can_edit_page(title, user=None, is_admin=False):
     if title.startswith('gaewiki:'):
         return False
 
-    # TODO: locked
-
     if '/' in title and settings.get('parents-must-exist') == 'yes':
         parent_title = '/'.join(title.split('/')[:-1])
         parent = model.WikiContent.gql('WHERE title = :1', parent_title).get()
@@ -39,7 +37,8 @@ def can_edit_page(title, user=None, is_admin=False):
             return False
 
     if settings.get('open-editing') == 'yes':
-        return not is_page_blacklisted(title)
+        if not model.WikiContent.get_by_title(title).is_locked():
+            return not is_page_blacklisted(title)
     if user is None:
         return False
     if user.email() in settings.get('editors', []):

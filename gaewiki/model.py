@@ -184,6 +184,10 @@ class WikiContent(db.Model):
             template = template.replace('USER_EMAIL', user.email())
         self.body = template.replace('PAGE_TITLE', self.title)
 
+    def is_locked(self):
+        """Returns True if the page has the locked:yes property."""
+        return self.get_property('locked') == 'yes'
+
     @classmethod
     def get_by_title(cls, title, default_body=None):
         """Finds and loads the page by its title, creates a new one if nothing
