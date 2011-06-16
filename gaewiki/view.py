@@ -64,6 +64,7 @@ def view_page(page, user=None, is_admin=False):
         'page': page,
         'is_admin': is_admin,
         'can_edit': access.can_edit_page(page.title, user, is_admin),
+        'page_labels': page.get_property('labels', []),
     }
 
     logging.debug(u'Viewing page "%s"' % data['page'].title)

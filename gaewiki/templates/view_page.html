@@ -12,8 +12,8 @@
 <div class="wtabs extl" id="pb">
   {% if page.body %}
     {{ page.body|wikify }}
-    {% if page_options.labels %}
-      <p class="categories">{% if settings.labels_text %}{{ settings.labels_text }}{% else %}Labels{% endif %}: {% for label in page_options.labels %}{% if forloop.first %}{% else %}, {% endif %}<a class="int" href="{{ label|labelurl }}">{{ label|escape }}</a>{% endfor %}.</p>
+    {% if page_labels %}
+      <p class="categories">{% if settings.labels_text %}{{ settings.labels_text }}{% else %}Labels{% endif %}: {% for label in page_labels %}{% if forloop.first %}{% else %}, {% endif %}<a class="int" href="{{ label|labelurl }}">{{ label|escape }}</a>{% endfor %}.</p>
     {% endif %}
   {% else %}
     <h1>{{ page.title }}</h1>
