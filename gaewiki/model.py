@@ -94,6 +94,13 @@ class WikiContent(db.Model):
             self._parsed_page = self.parse_body(self.body or '')
         return self._parsed_page.get(key, default)
 
+    @property
+    def comments_enabled(self):
+        """Returns True if the page has a comments:yes property and the
+        comments_code global settings is not empty."""
+        if self.get_property('comments') == ['yes']:
+            return True
+
     def get_display_title(self):
         return self.get_property('display_title', self.title)
 
