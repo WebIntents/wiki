@@ -178,7 +178,9 @@ class BackLinksHandler(RequestHandler):
 
 class UsersHandler(RequestHandler):
     def get(self):
-        self.check_open_wiki()
+        if not users.is_current_user_admin():
+            raise Forbidden
+        # self.check_open_wiki()
         self.reply(view.get_users(model.WikiUser.get_all()), 'text/html')
 
 

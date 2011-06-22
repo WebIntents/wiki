@@ -16,6 +16,7 @@ gae-wiki 1.1
 - Better support for redirects.
 - Support for external comment services.
 - Fixed locked page icon being always shown.
+- The list of active users (/w/users) is now admin only.
 
 
 gae-wiki 1.0 (20110514)
