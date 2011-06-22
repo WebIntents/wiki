@@ -140,7 +140,7 @@ class WikiContent(db.Model):
                 label = 'gaewiki:parent:' + '/'.join(parts)
                 labels.append(label)
                 parts.pop()
-                break # remove to add recursion
+                break  # remove to add recursion
         self.labels = labels
 
     def backup(self):

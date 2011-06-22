@@ -6,8 +6,11 @@ clean:
 console:
 	PYTHONPATH=$(GAE_DIR):$(GAE_DIR)/lib/django_0_96 python
 
-test:
+test: test-syntax
 	PYTHONPATH=$(GAE_DIR):$(GAE_DIR)/lib/django_0_96 python gaewiki/tests.py
+
+test-syntax:
+	pep8 -r --ignore E501 gaewiki/*.py
 
 upload: .hg/gaepass
 	cat .hg/gaepass | appcfg.py -e "$(MAIL)" --passin update .

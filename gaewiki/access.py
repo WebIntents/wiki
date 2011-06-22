@@ -48,11 +48,11 @@ def can_edit_page(title, user=None, is_admin=False):
 
 def can_read_page(title, user, is_admin):
     """Returns True if the user is allowed to read the specified page.
-    
+
     Admins and global readers and editors are allowed to read all pages.  Other
     users are allowed to read all pages if the wiki is open or if the user is
     listed in the readers/editors page property.
-    
+
     Otherwise no access."""
     if is_admin:
         return True
