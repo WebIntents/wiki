@@ -14,6 +14,8 @@ gae-wiki 1.1
 - Added label RSS feeds (/w/pages.rss?label=xyz).
 - [[List:xyz]] now supports the display_title page property.
 - Better support for redirects.
+- Support for external comment services.
+- Fixed locked page icon being always shown.
 
 
 gae-wiki 1.0 (20110514)
