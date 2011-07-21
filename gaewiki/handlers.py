@@ -2,6 +2,7 @@
 
 import logging
 import os
+import traceback
 import urllib
 
 from django.utils import simplejson
@@ -62,6 +63,7 @@ class RequestHandler(webapp.RequestHandler):
             return webapp.RequestHandler.handle_exception(self, e, debug_mode)
         else:
             logging.error(e)
+            logging.error(traceback.format_exc(e))
             self.show_error_page(500)
 
 
