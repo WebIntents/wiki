@@ -80,7 +80,15 @@ def wikify_one(pat, real_page_title):
 
 
 def list_pages_by_label(label):
-    pages = model.WikiContent.get_by_label(label)
+    """Returns a formatted list of pages with the specified label."""
+    keys = label.split(';')
+    pages = model.WikiContent.get_by_label(keys[0])
+
+    if 'sort=date,desc' in keys:
+        pages.sort(key=lambda p: p.created, reverse=True)
+    else:
+        pages.sort(key=lambda p: p.title.lower())
+
     text = u''.join([u'<li><a class="int" href="%s">%s</a></li>' % (pageurl(p.redirect or p.title), p.get_property('display_title', p.title)) for p in pages])
     return u'<ul class="labellist">%s</ul>' % text
 

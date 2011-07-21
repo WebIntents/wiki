@@ -19,6 +19,7 @@ gae-wiki 1.1
 - The list of active users (/w/users) is now admin only.
 - Google Maps and article geotagging.
 - New page property: date.
+- Pages can be sorted by date using the [[List:label;sort=date,desc]] syntax.
 
 
 gae-wiki 1.0 (20110514)

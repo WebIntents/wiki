@@ -271,7 +271,7 @@ class WikiContent(db.Model):
     @classmethod
     def get_by_label(cls, label):
         """Returns a list of pages that have the specified label."""
-        return cls.gql('WHERE labels = :1 ORDER BY title', label).fetch(100)
+        return cls.gql('WHERE labels = :1', label).fetch(100)
 
     @classmethod
     def get_publicly_readable(cls):
