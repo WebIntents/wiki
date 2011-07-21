@@ -112,6 +112,12 @@ class WikiContent(db.Model):
         else:
             logging.debug('somebody changed property %s of page "%s" to: %s' % (key, self.title, value))
 
+    def get_actual_body(self):
+        """Returns the page body with updated properties "date" and "author"."""
+        body = self.parse_body(self.body or '')
+        body['date'] = self.created.strftime('%Y-%m-%d %H:%M:%S')
+        return self.format_body(body)
+
     @property
     def comments_enabled(self):
         """Returns True if the page has a comments:yes property and the
@@ -155,6 +161,11 @@ class WikiContent(db.Model):
             self.redirect = options.get('redirect')
             self.pread = options.get('public') == 'yes' and options.get('private') != 'yes'
             self.labels = options.get('labels', [])
+            if 'date' in options:
+                try:
+                    self.created = datetime.datetime.strptime(options['date'], '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    pass
             self.__update_geopt()
 
         self.add_implicit_labels()
