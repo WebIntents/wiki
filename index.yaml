@@ -21,3 +21,10 @@ indexes:
   - name: labels
   - name: created
     direction: desc
+
+# Used to find geotagged pages with a certain label.
+- kind: WikiContent
+  properties:
+  - name: labels
+  - name: created
+    direction: desc

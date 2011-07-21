@@ -72,12 +72,16 @@ class WikiUserReference(db.ReferenceProperty):
 
 class WikiContent(db.Model):
     """Stores current versions of pages."""
+    GEOLABEL = 'gaewiki:geopt'
+
     title = db.StringProperty(required=True)
     body = db.TextProperty(required=False)
     author = WikiUserReference()
     updated = db.DateTimeProperty(auto_now_add=True)
     created = db.DateTimeProperty(auto_now_add=True)
     pread = db.BooleanProperty()
+    # Place on the map.
+    geopt = db.GeoPtProperty()
     # The name of the page that this one redirects to.
     redirect = db.StringProperty()
     # Labels used by this page.
@@ -90,9 +94,23 @@ class WikiContent(db.Model):
         self._parsed_page = None
 
     def get_property(self, key, default=None):
+        """Returns the value of a property."""
         if self._parsed_page is None:
             self._parsed_page = self.parse_body(self.body or '')
         return self._parsed_page.get(key, default)
+
+    def set_property(self, key, value):
+        """Changes the value of a property."""
+        if self._parsed_page is None:
+            self._parsed_page = self.parse_body(self.body or '')
+        self._parsed_page[key] = value
+        self.body = self.format_body(self._parsed_page)
+
+        user = users.get_current_user()
+        if user:
+            logging.debug('%s changed property %s of page "%s" to: %s' % (user.email(), key, self.title, value))
+        else:
+            logging.debug('somebody changed property %s of page "%s" to: %s' % (key, self.title, value))
 
     @property
     def comments_enabled(self):
@@ -100,6 +118,16 @@ class WikiContent(db.Model):
         comments_code global settings is not empty."""
         if self.get_property('comments') == ['yes']:
             return True
+
+    @property
+    def summary(self):
+        """Returns the formatted body unless there's an explicit "summary"
+        property."""
+        data = self.get_property('summary')
+        if not data:
+            data = util.wikify_filter(self.body, display_title='')
+        logging.debug(data)
+        return data
 
     def get_display_title(self):
         return self.get_property('display_title', self.title)
@@ -127,10 +155,24 @@ class WikiContent(db.Model):
             self.redirect = options.get('redirect')
             self.pread = options.get('public') == 'yes' and options.get('private') != 'yes'
             self.labels = options.get('labels', [])
+            self.__update_geopt()
 
         self.add_implicit_labels()
         db.Model.put(self)
         settings.check_and_flush(self)
+
+    def __update_geopt(self):
+        """Updates the geopt property from the appropriate page property.
+        Maintains the gaewiki:geopt label."""
+        if self.GEOLABEL in self.labels:
+            self.labels.remove(self.GEOLABEL)
+
+        tmp = self.get_property('geo')
+        if tmp is not None:
+            parts = tmp.split(',', 1)
+            self.geopt = db.GeoPt(float(parts[0]), float(parts[1]))
+            self.labels.append(self.GEOLABEL)
+            logging.debug(u'Put %s on the map: %s' % (self.title, self.geopt))
 
     def add_implicit_labels(self):
         labels = [l for l in self.labels if not l.startswith('gaewiki:parent:')]
@@ -268,6 +310,29 @@ class WikiContent(db.Model):
                         options[k] = v
         options['text'] = parts[-1]
         return options
+
+    @staticmethod
+    def format_body(parsed):
+        """Returns the text representation of a parsed body dictionary."""
+        def format_property(value):
+            if type(value) == list:
+                value = u', '.join(sorted(value))
+            return value
+        head = u'\n'.join(sorted([ u'%s: %s' % (k, format_property(v)) for k, v in parsed.items() if k != 'text' ]))
+        text = parsed['text']
+        if head:
+            text = head + u'\n---\n' + text
+        return text
+
+    @classmethod
+    def find_geotagged(cls, label=None, limit=100):
+        """Returns geotagged pages."""
+        if label is None:
+            label = cls.GEOLABEL
+        label = label.replace('_', ' ')
+        pages = cls.gql('WHERE labels = :1 ORDER BY created DESC', label).fetch(limit)
+        pages = [p for p in pages if cls.GEOLABEL in p.labels]
+        return pages
 
 
 class WikiRevision(db.Model):

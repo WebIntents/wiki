@@ -6,6 +6,7 @@ import os
 from google.appengine.dist import use_library
 use_library('django', '0.96')
 
+from django.utils import simplejson
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
@@ -67,6 +68,12 @@ def view_page(page, user=None, is_admin=False):
         'can_edit': access.can_edit_page(page.title, user, is_admin),
         'page_labels': page.get_property('labels', []),
     }
+
+    if settings.get('enable-map'):
+        if page.get_property('map_label'):
+            data['map_url'] = '/w/pages/map?label=' + util.uurlencode(page.get_property('map_label'))
+        elif data['can_edit'] or page.geopt:
+            data['map_url'] = '/w/map?page=' + util.uurlencode(page.title)
 
     logging.debug(u'Viewing page "%s"' % data['page'].title)
     return render('view_page.html', data)
@@ -145,3 +152,54 @@ def show_profile(wiki_user):
     return render('profile.html', {
         'user': wiki_user,
     })
+
+
+def show_page_map(label):
+    """Renders the base page map code."""
+    return render('page_map.html', {
+        'map_label': label.replace('_', ' '),
+    })
+
+
+def show_single_page_map(page):
+    """Renders a page that displays a page on the map."""
+    pt = page.get_property('geo', default='61.72160269540121, 94.21821875')
+    return render('single_page_map.html', {
+        'page': page,
+        'page_ll': pt.split(',')
+    })
+
+
+def show_pages_map_data(pages):
+    """Returns the JavaScript with markers."""
+    data = {
+        'bounds': {
+            'minlat': 999,
+            'minlng': 999,
+            'maxlat': 0,
+            'maxlng': 0,
+        },
+        'markers': [],
+        'length': len(pages),
+    }
+
+    for page in pages:
+        lat = page.geopt.lat
+        lng = page.geopt.lon
+        if lat < data['bounds']['minlat']:
+            data['bounds']['minlat'] = lat
+        if lng < data['bounds']['minlng']:
+            data['bounds']['minlng'] = lng
+        if lat > data['bounds']['maxlat']:
+            data['bounds']['maxlat'] = lat
+        if lng > data['bounds']['maxlng']:
+            data['bounds']['maxlng'] = lng
+
+        data['markers'].append({
+            'lat': lat,
+            'lng': lng,
+            'title': page.title,
+            'html': render('map_info_window.html', { 'page': page }).decode('utf-8'),
+        })
+
+    return 'var map_data = ' + simplejson.dumps(data) + ';'

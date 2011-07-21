@@ -17,6 +17,7 @@ gae-wiki 1.1
 - Support for external comment services.
 - Fixed locked page icon being always shown.
 - The list of active users (/w/users) is now admin only.
+- Google Maps and article geotagging.
 
 
 gae-wiki 1.0 (20110514)

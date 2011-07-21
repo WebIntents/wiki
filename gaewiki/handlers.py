@@ -119,7 +119,7 @@ class IndexHandler(RequestHandler):
 
 class IndexFeedHandler(IndexHandler):
     def get(self):
-        self.reply(view.list_pages_feed(self.get_data()), 'text/html')
+        self.reply(view.list_pages_feed(self.get_data()), 'application/atom+xml')
 
     def get_data(self):
         self.check_open_wiki()
@@ -239,6 +239,55 @@ class ProfileHandler(RequestHandler):
         self.redirect('/w/profile')
 
 
+class GeotaggedPagesFeedHandler(IndexFeedHandler):
+    """Returns data for the /w/pages/geotagged.rss feed.  Supports the 'label'
+    argument."""
+    def get_data(self):
+        self.check_open_wiki()
+        return model.WikiContent.find_geotagged(label=self.request.get('label', None))
+
+
+class GeotaggedPagesJsonHandler(RequestHandler):
+    def get(self):
+        self.check_open_wiki()
+        label = self.request.get('label', None)
+        pages = model.WikiContent.find_geotagged(label=label)
+        self.reply(view.show_pages_map_data(pages), 'text/javascript')
+
+
+class PageMapHandler(RequestHandler):
+    """Returns a page that displays a Google Map."""
+    def get(self):
+        self.reply(view.show_page_map(self.request.get('label', None)), 'text/html')
+
+
+class MapHandler(RequestHandler):
+    """Shows a page on the map and allows editors move the pointer."""
+    def get(self):
+        page_name = self.request.get('page')
+        if not page_name:
+            raise NotFound('Page not found.')
+
+        page = model.WikiContent.get_by_title(page_name)
+        if page is None:
+            raise NotFound('Page not found.')
+
+        self.reply(view.show_single_page_map(page), 'text/html')
+
+    def post(self):
+        """Processes requests to move the pointer.  Expects arguments
+        'page_name' and 'll'."""
+        page = model.WikiContent.get_by_title(self.request.get('page_name'))
+        if page is None:
+            raise NotFound('Page not found.')
+        if access.can_edit_page(page.title, users.get_current_user(), users.is_current_user_admin()):
+            geo = self.request.get('lat') + ',' + self.request.get('lng')
+            page.set_property('geo', geo)
+            page.put()
+        response = [ l.strip() for l in page.get_property('geo').split(',') ]
+        self.reply(simplejson.dumps(response), 'application/json')
+
+
 handlers = [
     ('/', StartPageHandler),
     ('/robots\.txt$', RobotsHandler),
@@ -253,7 +302,11 @@ handlers = [
     ('/w/index$', IndexHandler),
     ('/w/index\.rss$', IndexFeedHandler),
     ('/w/interwiki$', InterwikiHandler),
+    ('/w/map', MapHandler),
     ('/w/pages\.rss', PagesFeedHandler),
+    ('/w/pages/geotagged\.rss', GeotaggedPagesFeedHandler),
+    ('/w/pages/geotagged\.js', GeotaggedPagesJsonHandler),
+    ('/w/pages/map', PageMapHandler),
     ('/w/profile', ProfileHandler),
     ('/w/users$', UsersHandler),
     ('/(.+)$', PageHandler),

@@ -23,12 +23,16 @@ def pageurl(title):
     return '/' + urllib.quote(title.replace(' ', '_'))
 
 
-def wikify_filter(text):
+def wikify_filter(text, display_title=None):
     props = parse_page(text)
     text = parse_markdown(props['text'])
-    if 'display_title' in props:
-        new = u'<h1>%s</h1>' % cgi.escape(props['display_title'])
-        if not props['display_title'].strip():
+
+    if display_title is None and 'display_title' in props:
+        display_title = props['display_title']
+
+    if display_title is not None:
+        new = u'<h1>%s</h1>' % cgi.escape(display_title)
+        if not display_title.strip():
             new = ''
         text = re.sub('<h1>(.+)</h1>', new, text)
     return wikify(text)
