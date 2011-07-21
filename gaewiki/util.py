@@ -23,7 +23,7 @@ def pageurl(title):
     return '/' + urllib.quote(title.replace(' ', '_'))
 
 
-def wikify_filter(text, display_title=None):
+def wikify_filter(text, display_title=None, page_name=None):
     props = parse_page(text)
     text = parse_markdown(props['text'])
 
@@ -35,7 +35,7 @@ def wikify_filter(text, display_title=None):
         if not display_title.strip():
             new = ''
         text = re.sub('<h1>(.+)</h1>', new, text)
-    return wikify(text)
+    return wikify(text, title=page_name)
 
 
 def parse_markdown(text):
@@ -70,7 +70,9 @@ def wikify_one(pat, real_page_title):
                 page_title = parts[1]
             if parts[0] == 'List':
                 return list_pages_by_label(parts[1])
-            if parts[0] == 'ListChildren':
+            elif parts[0] == 'gaewiki':
+                return process_special_token(parts[1], real_page_title)
+            elif parts[0] == 'ListChildren':
                 return list_pages_by_label('gaewiki:parent:' + (parts[1] or real_page_title))
             iwlink = settings.get(u'interwiki-' + parts[0])
             if iwlink:
@@ -91,6 +93,27 @@ def list_pages_by_label(label):
 
     text = u''.join([u'<li><a class="int" href="%s">%s</a></li>' % (pageurl(p.redirect or p.title), p.get_property('display_title', p.title)) for p in pages])
     return u'<ul class="labellist">%s</ul>' % text
+
+
+def process_special_token(text, page_name):
+    """Renders special code snippets such as an MP3 player."""
+    parts = text.split(';')
+    logging.debug(u'Parsing a special token: %s' % parts)
+
+    if parts[0] == 'mp3player':
+        url = None
+        for part in parts:
+            if part.startswith('url='):
+                url = part[4:]
+        if url is None:
+            page = model.WikiContent.get_by_title(page_name)
+            if page is not None:
+                url = page.get_property('file')
+        if url is None:
+            return '<!-- player error: no file -->'
+        return '<div class="player mp3player"><object type="application/x-shockwave-flash" data="/gae-wiki-static/player.swf" width="200" height="20"><param name="movie" value="/files/player.swf"/><param name="bgcolor" value="#eeeeee"/><param name="FlashVars" value="mp3=%s&amp;buttoncolor=000000&amp;slidercolor=000000&amp;loadingcolor=808080"/></object></div>' % cgi.escape(url)
+
+    return u'<!-- unsupported token: %s -->' % parts[0]
 
 
 def pack_page_header(headers):

@@ -46,5 +46,10 @@ def markdown(text):
 
 
 @register.filter
-def wikify(text):
-    return util.wikify_filter(text)
+def wikify(text, page_title=None):
+    return util.wikify_filter(text, page_name=page_title)
+
+
+@register.filter
+def wikify_page(page):
+    return util.wikify_filter(page.body, page_name=page.title)
