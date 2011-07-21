@@ -105,7 +105,7 @@ def process_special_token(text, page_name):
         for part in parts:
             if part.startswith('url='):
                 url = part[4:]
-        if url is None:
+        if url is None and page_name is not None:
             page = model.WikiContent.get_by_title(page_name)
             if page is not None:
                 url = page.get_property('file')
