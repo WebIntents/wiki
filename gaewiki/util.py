@@ -113,7 +113,30 @@ def process_special_token(text, page_name):
             return '<!-- player error: no file -->'
         return '<div class="player mp3player"><object type="application/x-shockwave-flash" data="/gae-wiki-static/player.swf" width="200" height="20"><param name="movie" value="/files/player.swf"/><param name="bgcolor" value="#eeeeee"/><param name="FlashVars" value="mp3=%s&amp;buttoncolor=000000&amp;slidercolor=000000&amp;loadingcolor=808080"/></object></div>' % cgi.escape(url)
 
+    elif parts[0] == 'map':
+        return render_map(parts[1:], page_name)
+
     return u'<!-- unsupported token: %s -->' % parts[0]
+
+
+def render_map(args, page_name):
+    params = {
+        'width': 300,
+        'height': 200,
+        'url': '/w/map?page=' + uurlencode(page_name),
+        'class': 'map',
+    }
+
+    for k, v in [a.split('=', 1) for a in args if '=' if a]:
+        if k == 'page':
+            params['url'] = '/w/map?page=' + uurlencode(v)
+        elif k == 'label':
+            params['url'] = '/w/pages/map?label=' + uurlencode(v)
+        else:
+            params[k] = v
+
+    html = '<iframe class="%(class)s" width="%(width)s" height="%(height)s" src="%(url)s"></iframe>' % params
+    return html
 
 
 def pack_page_header(headers):

@@ -282,4 +282,17 @@ a.iw-broken {
   font-size: 12pt;
 }
 
+/**
+ * Default embedded map.
+ */
+iframe.map {
+  border: solid 1px #ccc;
+  padding: 1px;
+  margin: 0 .5em .25em 0;
+}
+iframe.right {
+  float: right;
+  margin: 0 0 .25em .5em;
+}
+
 /* vim: set ts=2 sts=2 sw=2 et ai noci: */
