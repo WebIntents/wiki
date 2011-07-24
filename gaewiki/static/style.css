@@ -288,7 +288,10 @@ a.iw-broken {
 iframe.map {
   border: solid 1px #ccc;
   padding: 1px;
+}
+iframe.left {
   margin: 0 .5em .25em 0;
+  float: left;
 }
 iframe.right {
   float: right;
