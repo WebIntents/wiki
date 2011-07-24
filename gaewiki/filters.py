@@ -53,3 +53,8 @@ def wikify(text, page_title=None):
 @register.filter
 def wikify_page(page):
     return util.wikify_filter(page.body, page_name=page.title)
+
+
+@register.filter
+def cleanup_summary(text):
+    return util.cleanup_summary(text)

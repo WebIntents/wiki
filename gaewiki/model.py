@@ -132,7 +132,6 @@ class WikiContent(db.Model):
         data = self.get_property('summary')
         if not data:
             data = util.wikify_filter(self.body, display_title='')
-        logging.debug(data)
         return data
 
     def get_display_title(self):

@@ -11,6 +11,9 @@ import model
 import settings
 
 
+cleanup_re_1 = re.compile('<h\d>.*', re.MULTILINE|re.DOTALL)
+
+
 def parse_page(page_content):
     return model.WikiContent.parse_body(page_content)
 
@@ -124,7 +127,7 @@ def render_map(args, page_name):
         'width': 300,
         'height': 200,
         'url': '/w/map?page=' + uurlencode(page_name),
-        'class': 'map',
+        'class': 'map right',
     }
 
     for k, v in [a.split('=', 1) for a in args if '=' if a]:
@@ -179,3 +182,10 @@ def get_base_url():
     if url.endswith(':80'):
         url = url[:-3]
     return url
+
+
+def cleanup_summary(text):
+    text = re.sub('<iframe.*</iframe>', '', text)
+    text = cleanup_re_1.sub('', text)
+    logging.debug(text)
+    return text
