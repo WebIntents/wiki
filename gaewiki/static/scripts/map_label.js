@@ -17,6 +17,14 @@ google.maps.event.addDomListener(window, 'load', function () {
 		add_marker(map, map_data.markers[idx], iw);
 	}
 
+	var ctl = document.getElementById('popout');
+	if (ctl) {
+		google.maps.event.addDomListener(ctl, 'click', function () {
+			window.open(window.location.href);
+		});
+		map.controls[google.maps.ControlPosition.TOP_RIGHT].push(ctl);
+	}
+
 	map.panToBounds(bounds);
 	map.fitBounds(bounds);
 });

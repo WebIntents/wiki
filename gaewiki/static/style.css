@@ -298,4 +298,21 @@ iframe.right {
   margin: 0 0 .25em .5em;
 }
 
+
+/**
+ * The pop-out control for maps.
+ */
+#map #popout {
+  padding: 5px;
+}
+#map #popout span {
+  display: block;
+  background-color: white;
+  font-size: 12px;
+  border: solid 1px rgb(103, 138, 199);
+  border-radius: 2px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
 /* vim: set ts=2 sts=2 sw=2 et ai noci: */
