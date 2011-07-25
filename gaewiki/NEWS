@@ -21,6 +21,7 @@ gae-wiki 1.1
 - New page property: date.
 - Pages can be sorted by date using the [[List:label;sort=date,desc]] syntax.
 - Added an MP3 player.
+- Fixed the Universal Edit Button.
 
 
 gae-wiki 1.0 (20110514)

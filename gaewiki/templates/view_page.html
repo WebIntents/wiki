@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block heads %}{% if can_edit %}
-  <link rel="alternate" type="application/x-wiki" href="/w/edit?page={{ page_title|uurlencode }}"/>
+  <link rel="alternate" type="application/x-wiki" href="/w/edit?page={{ page.title|uurlencode }}"/>
 {% endif %}{% endblock %}
 {% block title %}{{ page.get_display_title|escape }}{% if settings.wiki_title %} — {{ settings.wiki_title|escape }}{% endif %}{% endblock %}
 {% block content %}
