@@ -116,6 +116,7 @@ class WikiContent(db.Model):
         """Returns the page body with updated properties "date" and "author"."""
         body = self.parse_body(self.body or '')
         body['date'] = self.created.strftime('%Y-%m-%d %H:%M:%S')
+        body['name'] = self.title
         return self.format_body(body)
 
     @property
@@ -165,6 +166,8 @@ class WikiContent(db.Model):
                     self.created = datetime.datetime.strptime(options['date'], '%Y-%m-%d %H:%M:%S')
                 except ValueError:
                     pass
+            if 'name' in options:
+                self.title = options['name']
             self.__update_geopt()
 
         self.add_implicit_labels()
@@ -215,7 +218,6 @@ class WikiContent(db.Model):
         self.author = WikiUser.get_or_create(author)
         self.updated = datetime.datetime.now()
 
-        # TODO: rename
         # TODO: cross-link
 
         self.put()

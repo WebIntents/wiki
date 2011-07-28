@@ -107,7 +107,7 @@ class EditHandler(RequestHandler):
             raise Forbidden
         page = model.WikiContent.get_by_title(title)
         page.update(body=self.request.get('body'), author=user, delete=self.request.get('delete'))
-        self.redirect('/' + urllib.quote(title.encode('utf-8')))
+        self.redirect('/' + urllib.quote(page.title.encode('utf-8').replace(' ', '_')))
 
 
 class IndexHandler(RequestHandler):
