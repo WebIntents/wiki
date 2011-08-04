@@ -19,11 +19,15 @@ def parse_page(page_content):
 
 
 def pageurl(title):
+    return '/' + pageurl_rel(title)
+
+
+def pageurl_rel(title):
     if type(title) == unicode:
         title = title.encode('utf-8')
     elif type(title) != str:
         title = str(title)
-    return '/' + urllib.quote(title.replace(' ', '_'))
+    return urllib.quote(title.replace(' ', '_'))
 
 
 def wikify_filter(text, display_title=None, page_name=None):
@@ -83,15 +87,21 @@ def wikify_one(pat, real_page_title):
 
     page = model.WikiContent.get_by_title(page_name)
 
-    classes = "int"
+    page_class = "int"
+    page_link = pageurl(page_name)
+    page_hint = page_name
+    page_text = page_title
+
     if page is None or not page.is_saved():
-        classes += " missing"
+        page_class += " missing"
+        page_hint += " (create)"
+        page_link = "/w/edit?page=" + pageurl_rel(page_name)
 
     return '<a class="%(class)s" href="%(href)s" title="%(hint)s">%(text)s</a>' % {
-        "class": classes,
-        "href": pageurl(page_name),
-        "hint": cgi.escape(page_name),
-        "text": cgi.escape(page_title),
+        "class": page_class,
+        "href": page_link,
+        "hint": cgi.escape(page_hint),
+        "text": cgi.escape(page_text),
     }
 
 
