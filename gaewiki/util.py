@@ -114,7 +114,8 @@ def process_special_token(text, page_name):
                 url = page.get_property('file')
         if url is None:
             return '<!-- player error: no file -->'
-        return '<div class="player mp3player"><object type="application/x-shockwave-flash" data="/gae-wiki-static/player.swf" width="200" height="20"><param name="movie" value="/files/player.swf"/><param name="bgcolor" value="#eeeeee"/><param name="FlashVars" value="mp3=%s&amp;buttoncolor=000000&amp;slidercolor=000000&amp;loadingcolor=808080"/></object></div>' % cgi.escape(url)
+        file_url = cgi.escape(url)
+        return '<div class="player mp3player"><object type="application/x-shockwave-flash" data="/gae-wiki-static/player.swf" width="200" height="20"><param name="movie" value="/files/player.swf"/><param name="bgcolor" value="#eeeeee"/><param name="FlashVars" value="mp3=%s&amp;buttoncolor=000000&amp;slidercolor=000000&amp;loadingcolor=808080"/></object> <a href="%s">Download audio file</a></div>' % (file_url, file_url)
 
     elif parts[0] == 'map':
         return render_map(parts[1:], page_name)
