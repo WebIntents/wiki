@@ -65,9 +65,12 @@ def view_page(page, user=None, is_admin=False):
     data = {
         'page': page,
         'is_admin': is_admin,
+        'is_plain': page.get_property('format') == 'plain',
         'can_edit': access.can_edit_page(page.title, user, is_admin),
         'page_labels': page.get_property('labels', []),
     }
+
+    logging.debug(data)
 
     if settings.get('enable-map'):
         if page.get_property('map_label'):

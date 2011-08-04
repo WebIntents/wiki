@@ -34,6 +34,9 @@ def wikify_filter(text, display_title=None, page_name=None):
     props = parse_page(text)
     text = parse_markdown(props['text'])
 
+    if props.get("format") == "plain":
+        return u"<pre>%s</pre>" % cgi.escape(props["text"])
+
     if display_title is None and 'display_title' in props:
         display_title = props['display_title']
 
