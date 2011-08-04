@@ -25,6 +25,7 @@ gae-wiki 1.1
 - Page name is now an editable property.
 - Added a /w/login page to use when the template is screwed.
 - Generated links now have tooltips with real page names.
+- Links to missing pages are now highlighted.
 
 
 gae-wiki 1.0 (20110514)

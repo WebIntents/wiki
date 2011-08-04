@@ -14,6 +14,9 @@ body#map {
 a, #pb a.int {
   color: #0645ad; /* #0b0080 */
 }
+#pb a.missing {
+  color: red;
+}
 #pb img {
   background-color: white;
 }

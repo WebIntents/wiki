@@ -81,7 +81,14 @@ def wikify_one(pat, real_page_title):
             if iwlink:
                 return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], iwlink.replace('%s', urllib.quote(parts[1].encode('utf-8'))), page_title)
 
-    return '<a class="int" href="%(href)s" title="%(hint)s">%(text)s</a>' % {
+    page = model.WikiContent.get_by_title(page_name)
+
+    classes = "int"
+    if page is None or not page.is_saved():
+        classes += " missing"
+
+    return '<a class="%(class)s" href="%(href)s" title="%(hint)s">%(text)s</a>' % {
+        "class": classes,
         "href": pageurl(page_name),
         "hint": cgi.escape(page_name),
         "text": cgi.escape(page_title),
