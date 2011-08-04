@@ -6,8 +6,8 @@ gae-wiki 1.1
 - The /w/index.rss feed shows new pages first.
 - Fixed absolute URLs in RSS, sitemap.xml and robots.txt.
 - display_title is used in page titles and RSS.
-- Added support for podcasting (page properties file, file_size, file_type, see
-  wiki for details).
+- Added support for podcasting (page properties file, file_size,
+  file_type, see wiki for details).
 - The locked:yes property now works.
 - Disabled external URL decoration.
 - Fixed page labels not being shown.
@@ -26,6 +26,8 @@ gae-wiki 1.1
 - Added a /w/login page to use when the template is screwed.
 - Generated links now have tooltips with real page names.
 - Links to missing pages are now highlighted and lead to edit pages.
+- Raw page contents can be retrieved using ?format=raw.  This is
+  useful for hosting custom styles and scripts in the wiki itself.
 
 
 gae-wiki 1.0 (20110514)

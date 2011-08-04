@@ -119,6 +119,12 @@ class WikiContent(db.Model):
         body['name'] = self.title
         return self.format_body(body)
 
+    def get_raw_body(self):
+        """Returns page contents as is.  Can be used for serving styles and
+        scripts."""
+        body = self.parse_body(self.body or "")
+        return body["text"]
+
     @property
     def comments_enabled(self):
         """Returns True if the page has a comments:yes property and the
