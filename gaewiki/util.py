@@ -81,7 +81,11 @@ def wikify_one(pat, real_page_title):
             if iwlink:
                 return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], iwlink.replace('%s', urllib.quote(parts[1].encode('utf-8'))), page_title)
 
-    return '<a class="int" href="%s">%s</a>' % (pageurl(page_name), page_title)
+    return '<a class="int" href="%(href)s" title="%(hint)s">%(text)s</a>' % {
+        "href": pageurl(page_name),
+        "hint": cgi.escape(page_name),
+        "text": cgi.escape(page_title),
+    }
 
 
 def list_pages_by_label(label):
@@ -94,8 +98,16 @@ def list_pages_by_label(label):
     else:
         pages.sort(key=lambda p: p.title.lower())
 
-    text = u''.join([u'<li><a class="int" href="%s">%s</a></li>' % (pageurl(p.redirect or p.title), p.get_property('display_title', p.title)) for p in pages])
-    return u'<ul class="labellist">%s</ul>' % text
+    items = []
+    for page in pages:
+        page_name = page.redirect or page.title
+        items.append(u'<li><a class="int" href="%(url)s" title="%(hint)s">%(title)s</a></li>' % {
+            "url": pageurl(page_name),
+            "hint": cgi.escape(page_name),
+            "title": page.get_property('display_title', page.title),
+        })
+
+    return u'<ul class="labellist">%s</ul>' % u''.join(items)
 
 
 def process_special_token(text, page_name):
