@@ -80,7 +80,9 @@ class PageHandler(RequestHandler):
         page = model.WikiContent.get_by_title(title)
 
         if self.request.get("format") == "raw":
-            self.reply(page.get_raw_body(), content_type="text/plain")
+            body = model.WikiContent.parse_body(page.body or '')
+            content_type = str(body.get("content-type", "text/plain"))
+            self.reply(body["text"], content_type=content_type)
         else:
             self.reply(view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin()), 'text/html')
 
