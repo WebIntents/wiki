@@ -290,6 +290,11 @@ class MapHandler(RequestHandler):
         self.reply(simplejson.dumps(response), 'application/json')
 
 
+class LoginHandler(RequestHandler):
+    def get(self):
+        self.redirect(users.create_login_url('/'))
+
+
 handlers = [
     ('/', StartPageHandler),
     ('/robots\.txt$', RobotsHandler),
@@ -311,5 +316,6 @@ handlers = [
     ('/w/pages/map', PageMapHandler),
     ('/w/profile', ProfileHandler),
     ('/w/users$', UsersHandler),
+    ('/w/login', LoginHandler),
     ('/(.+)$', PageHandler),
 ]
