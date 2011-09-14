@@ -292,7 +292,7 @@ class MapHandler(RequestHandler):
             geo = self.request.get('lat') + ',' + self.request.get('lng')
             page.set_property('geo', geo)
             page.put()
-        response = [ l.strip() for l in page.get_property('geo').split(',') ]
+        response = [l.strip() for l in page.get_property('geo').split(',')]
         self.reply(simplejson.dumps(response), 'application/json')
 
 

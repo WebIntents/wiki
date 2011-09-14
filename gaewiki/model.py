@@ -330,7 +330,7 @@ class WikiContent(db.Model):
             if type(value) == list:
                 value = u', '.join(sorted(value))
             return value
-        head = u'\n'.join(sorted([ u'%s: %s' % (k, format_property(v)) for k, v in parsed.items() if k != 'text' ]))
+        head = u'\n'.join(sorted([u'%s: %s' % (k, format_property(v)) for k, v in parsed.items() if k != 'text']))
         text = parsed['text']
         if head:
             text = head + u'\n---\n' + text

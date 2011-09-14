@@ -11,7 +11,7 @@ import model
 import settings
 
 
-cleanup_re_1 = re.compile('<h\d>.*', re.MULTILINE|re.DOTALL)
+cleanup_re_1 = re.compile('<h\d>.*', re.MULTILINE | re.DOTALL)
 
 
 def parse_page(page_content):
