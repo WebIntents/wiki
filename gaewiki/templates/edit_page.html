@@ -20,7 +20,7 @@
   </ul>
   <div class="wtabs" id="pb">
     <h1>{% if page.title %}{{ page.title|escape }}{% else %}New page{% endif %}</h1>
-    <form action="/w/edit" method="POST" class="markdown">
+    <form action="/w/edit" method="POST" class="markdown editor">
         <input type="hidden" name="name" value="{{ page.title|uurlencode }}"/>
         <textarea rows="20" cols="80" name="body" id="editor">{% if page.body %}{{ page.get_actual_body }}{% endif %}</textarea>
         {% if page.is_saved %}

@@ -53,7 +53,16 @@ class RequestHandler(webapp.RequestHandler):
         self.reply(view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin()), 'text/html')
 
     def handle_exception(self, e, debug_mode):
-        if type(e) == BadRequest:
+        if debug_mode:
+            logging.error(e, exc_info=True)
+
+        if self.is_ajax():
+            self.reply(simplejson.dumps({
+                "status": "error",
+                "error": unicode(e),
+                "error_class": e.__class__.__name__,
+            }), "application/json")
+        elif type(e) == BadRequest:
             self.show_error_page(400)
         elif type(e) == Forbidden:
             self.show_error_page(403)
@@ -62,9 +71,18 @@ class RequestHandler(webapp.RequestHandler):
         elif debug_mode:
             return webapp.RequestHandler.handle_exception(self, e, debug_mode)
         else:
-            logging.error(e)
-            logging.error(traceback.format_exc(e))
             self.show_error_page(500)
+
+    def redirect(self, url):
+        if self.is_ajax():
+            return self.reply(simplejson.dumps({
+                "status": "redirect",
+                "url": url,
+            }))
+        return super(RequestHandler, self).redirect(url)
+
+    def is_ajax(self):
+        return os.environ.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
 
 
 class PageHandler(RequestHandler):
