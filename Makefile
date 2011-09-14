@@ -9,7 +9,7 @@ all:
 	@echo "  upload   -- deploy to AppEngine"
 
 clean:
-	find -iregex '.*\.\(pyc\|rej\|orig\)' -delete
+	find -iregex '.*\.\(pyc\|rej\|orig\|zip\)' -delete
 
 console:
 	PYTHONPATH=$(GAE_DIR):$(GAE_DIR)/lib/django_0_96 python
