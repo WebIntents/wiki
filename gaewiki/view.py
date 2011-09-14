@@ -67,7 +67,7 @@ def view_page(page, user=None, is_admin=False):
         'page_labels': page.get_property('labels', []),
     }
 
-    logging.debug(data)
+    # logging.debug(data)
 
     if settings.get('enable-map'):
         if page.get_property('map_label'):
