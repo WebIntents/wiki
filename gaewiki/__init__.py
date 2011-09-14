@@ -6,7 +6,7 @@ import sys
 import wsgiref.handlers
 
 from google.appengine.dist import use_library
-use_library('django', '0.96')
+use_library('django', '1.2')
 
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
@@ -19,6 +19,6 @@ if __name__ == '__main__':
         logging.getLogger().setLevel(logging.DEBUG)
 
     sys.path.insert(0, os.path.dirname(__file__))
-    template.register_template_library('filters')
+    template.register_template_library('templatetags.filters')
 
     wsgiref.handlers.CGIHandler().run(webapp.WSGIApplication(handlers.handlers, debug=debug))

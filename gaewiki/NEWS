@@ -28,6 +28,7 @@ gae-wiki 1.1
 - Links to missing pages are now highlighted and lead to edit pages.
 - Raw page contents can be retrieved using ?format=raw.  This is
   useful for hosting custom styles and scripts in the wiki itself.
+- Moved to django 1.2
 
 
 gae-wiki 1.0 (20110514)

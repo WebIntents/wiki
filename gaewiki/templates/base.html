@@ -49,7 +49,7 @@
     	{% endblock %}
     {% if sidebar %}
       <div id="sidebar">
-        {{ sidebar|wikify }}
+        {{ sidebar|wikify|safe }}
         {% if page.is_saved %}
           <div class="tools">
             <h3>Tools</h3>
@@ -68,7 +68,7 @@
         {% if page.is_saved %}
         <p id="pm">This page was last edited {% if page.author.get_nickname %}by <a href="/user%3A{{ page.author.get_nickname|uurlencode }}">{{ page.author.get_nickname|escape }}</a>{% else %}anonymously{% endif %} on {{ page.updated|date:"d.m.y" }} at {{ page.updated|date:"H:i" }}.</p>
         {% endif %}
-        {% if footer %}{{ footer|wikify }}{% endif %}
+        {% if footer %}{{ footer|wikify|safe }}{% endif %}
       </div>
 		{% endblock %}
     </body>

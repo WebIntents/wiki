@@ -19,12 +19,12 @@
     {% if is_plain %}
       <pre>{{ page|wikify_page }}</pre>
     {% else %}
-      {{ page|wikify_page }}
+      {{ page|wikify_page|safe }}
       {% if page_labels %}
         <p class="categories">{% if settings.labels_text %}{{ settings.labels_text }}{% else %}Labels{% endif %}: {% for label in page_labels %}{% if forloop.first %}{% else %}, {% endif %}<a class="int" href="{{ label|labelurl }}">{{ label|escape }}</a>{% endfor %}.</p>
       {% endif %}
       {% if page.comments_enabled %}
-        {{ settings.comments_code }}
+        {{ settings.comments_code|safe }}
       {% endif %}
     {% endif %}
   {% else %}
