@@ -166,7 +166,9 @@ class WikiContent(db.Model):
                     self.created = datetime.datetime.strptime(options['date'], '%Y-%m-%d %H:%M:%S')
                 except ValueError:
                     pass
-            if 'name' in options:
+            if 'name' in options and options['name'] != self.title:
+                if self.get_by_title(options['name'], create_if_none=False) is not None:
+                    raise ValueError('A page named "%s" already exists.' % options['name'])
                 self.title = options['name']
             self.__update_geopt()
 
@@ -258,12 +260,12 @@ class WikiContent(db.Model):
         return self
 
     @classmethod
-    def get_by_title(cls, title, default_body=None):
+    def get_by_title(cls, title, default_body=None, create_if_none=True):
         """Finds and loads the page by its title, creates a new one if nothing
         could be found."""
         title = title.replace('_', ' ')
         page = cls.gql('WHERE title = :1', title).get()
-        if page is None:
+        if page is None and create_if_none:
             page = cls(title=title)
             if default_body is not None:
                 page.body = default_body
