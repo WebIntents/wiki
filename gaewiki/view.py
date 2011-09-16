@@ -14,6 +14,18 @@ import settings
 import util
 
 
+DEFAULT_LABEL_BODY = u"""name: %(title)s
+---
+# %(title)s
+
+Pages in this category:
+
+[[List:%(label)s]]
+
+_This is an automatically generated page._
+"""
+
+
 def render(template_name, data):
     filename = os.path.join(os.path.dirname(__file__), 'templates', template_name)
     if not os.path.exists(filename):
@@ -59,6 +71,10 @@ def get_footer():
 
 def view_page(page, user=None, is_admin=False):
     page = page.get_redirected()
+
+    if page.title.startswith("Label:") and not page.body:
+        page.body = DEFAULT_LABEL_BODY % {"title": page.title, "label": page.title[6:]}
+
     data = {
         'page': page,
         'is_admin': is_admin,
