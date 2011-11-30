@@ -194,6 +194,13 @@ class TestCase(unittest.TestCase):
         settings.change({'open-editing': 'yes', 'open-reading': 'yes'})
         self.assertEquals(access.can_edit_page('foo', is_admin=False), False)
 
+    def test_list_changes_in_closed_wiki(self):
+        settings.change({"open-reading": "yes", "open-writing": "yes"})
+        self.assertTrue(isinstance(model.WikiContent.get_changes(), list))
+
+        settings.change({"open-reading": "no", "open-writing": "no"})
+        self.assertTrue(isinstance(model.WikiContent.get_changes(), list))
+
     def test_edit_page_with_local_editors(self):
         pass
 

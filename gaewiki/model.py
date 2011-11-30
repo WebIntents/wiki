@@ -301,7 +301,7 @@ class WikiContent(db.Model):
         if settings.get('open-reading') == 'yes':
             pages = cls.all().order('-updated').fetch(20)
         else:
-            pages = cls.gql('WHERE pread = :1 ORDER BY -updated', True).fetch(20)
+            pages = cls.gql('WHERE pread = :1 ORDER BY updated DESC', True).fetch(20)
         return pages
 
     @classmethod
