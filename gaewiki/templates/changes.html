@@ -25,7 +25,7 @@
           <a class="int{% if page.pread %} public{% endif %}" href="{{ page.title|pageurl }}">{{ page.title|escape }}</a>
         </td>
         <td>
-          {{ page.updated|date:"d.m.y, H:i" }}
+          {{ page.updated|timezone|date:"Y/m/d H:i:s" }}
         </td>
         <td>
           {% if page.author %}

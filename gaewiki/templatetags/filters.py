@@ -4,6 +4,9 @@ from google.appengine.dist import use_library
 use_library('django', '1.2')
 from google.appengine.ext.webapp import template
 
+from pytz.gae import pytz
+
+import settings
 import util
 
 
@@ -58,3 +61,12 @@ def wikify_page(page):
 @register.filter
 def cleanup_summary(text):
     return util.cleanup_summary(text)
+
+
+@register.filter
+def timezone(date, tz=None):
+    if not tz:
+        tz = settings.get("timezone", "UTC")
+    if tz:
+        return date.replace(tzinfo=pytz.UTC).astimezone(pytz.timezone(tz))
+    return date

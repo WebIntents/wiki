@@ -15,7 +15,7 @@
       {% for user in users %}
         <tr>
           <td><a href="/user%3A{{ user.get_nickname|uurlencode }}">{{ user.get_nickname|escape }}</a></td>
-          <td>{{ user.joined|date:"Y-m-d" }}</td>
+          <td>{{ user.joined|timezone|date:"Y-m-d" }}</td>
         </tr>
       {% endfor %}
       </tbody>

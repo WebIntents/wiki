@@ -10,7 +10,7 @@
 <title>{{ page.get_display_title|escape }}</title>
 <link>{{ base }}{{ page.title|pageurl }}</link>
 <guid>{{ base }}{{ page.title|pageurl }}</guid>
-<pubDate>{{ page.created|date:"r" }}</pubDate>
+<pubDate>{{ page.created|timezone|date:"r" }}</pubDate>
 <author>{{ page.author.get_public_email|escape }}</author>
 </item>
 {% endfor %}

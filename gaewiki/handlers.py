@@ -53,7 +53,7 @@ class RequestHandler(webapp.RequestHandler):
         self.reply(view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin()), 'text/html')
 
     def handle_exception(self, e, debug_mode):
-        if debug_mode:
+        if debug_mode or True:
             logging.error(e, exc_info=True)
 
         if self.is_ajax():

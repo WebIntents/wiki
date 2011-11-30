@@ -14,7 +14,7 @@
 <title>{{ item.get_display_title|escape }}</title>
 <link>{{ base }}{{ item.title|pageurl }}</link>
 <guid>{{ base }}{{ item.title|pageurl }}</guid>
-<pubDate>{{ item.updated|date:"r" }}</pubDate>
+<pubDate>{{ item.updated|timezone|date:"r" }}</pubDate>
 <author>{{ item.author.get_public_email|escape }}</author>
 <description>{{ item.body|wikify|escape }}</description>
 {% if item.get_file %}

@@ -18,6 +18,7 @@ open-editing: no
 editors: user1@example.com, user2@example.com
 interwiki-google: http://www.google.ru/search?q=%s
 interwiki-wp: http://en.wikipedia.org/wiki/Special:Search?search=%s
+timezone: UTC
 ---
 # gaewiki:settings
 
