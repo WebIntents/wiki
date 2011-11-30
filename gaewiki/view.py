@@ -215,7 +215,7 @@ def show_pages_map_data(pages):
             'lat': lat,
             'lng': lng,
             'title': page.title,
-            'html': render('map_info_window.html', { 'page': page }).decode('utf-8'),
+            'html': render('map_info_window.html', {'page': page}).decode('utf-8'),
         })
 
     return 'var map_data = ' + simplejson.dumps(data) + ';'
