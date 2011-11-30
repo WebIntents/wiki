@@ -1,3 +1,4 @@
+GAE_DIR=~/src/.gae
 PACKAGE=gaewiki-`date +'%Y%m%d'`.zip
 
 all:
