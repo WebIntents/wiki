@@ -1,6 +1,5 @@
 # encoding=utf-8
 
-import logging
 import os
 import sys
 import wsgiref.handlers
@@ -23,10 +22,6 @@ def main():
 
 
 if __name__ == "__main__":
-    debug = os.environ['SERVER_SOFTWARE'].startswith('Development/')
-    if debug:
-        logging.getLogger().setLevel(logging.DEBUG)
-
     sys.path.insert(0, os.path.dirname(__file__))
     template.register_template_library('templatetags.filters')
 
