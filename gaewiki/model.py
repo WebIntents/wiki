@@ -5,6 +5,7 @@ import logging
 import random
 import re
 
+from google.appengine.api import memcache
 from google.appengine.api import users
 from google.appengine.ext import db
 
@@ -175,6 +176,7 @@ class WikiContent(db.Model):
         self.add_implicit_labels()
         db.Model.put(self)
         settings.check_and_flush(self)
+        memcache.delete(self.title)
 
     def __update_geopt(self):
         """Updates the geopt property from the appropriate page property.
@@ -264,11 +266,18 @@ class WikiContent(db.Model):
         """Finds and loads the page by its title, creates a new one if nothing
         could be found."""
         title = title.replace('_', ' ')
-        page = cls.gql('WHERE title = :1', title).get()
+
+        page = None
+        if title != 'gaewiki:settings':
+            page = memcache.get(title)
+        if page is None:
+            page = cls.gql('WHERE title = :1', title).get()
         if page is None and create_if_none:
             page = cls(title=title)
             if default_body is not None:
                 page.body = default_body
+        elif title != 'gaewiki:settings':
+            memcache.set(title, page)
         return page
 
     @classmethod
