@@ -42,7 +42,7 @@ def can_edit_page(title, user=None, is_admin=False):
     if user is None:
         return False
     if user.email() in settings.get('editors', []):
-        return True
+        return not is_page_blacklisted(title)
     return False
 
 
