@@ -66,11 +66,11 @@ class TestCase(unittest.TestCase):
         checks = [
             ('foo bar', 'foo bar'),
             # Basic linking.
-            ('[[foo bar]]', '<a class="int" href="/foo_bar">foo bar</a>'),
-            ('[[foo|bar]]', '<a class="int" href="/foo">bar</a>'),
+            ('[[foo bar]]', '<a class="int missing" href="/w/edit?page=foo_bar" title="foo bar (create)">foo bar</a>'),
+            ('[[foo|bar]]', '<a class="int missing" href="/w/edit?page=foo" title="foo (create)">bar</a>'),
             # Interwiki linking.
             ('[[google:hello]]', u'<a class="iw iw-google" href="http://www.google.ru/search?q=hello" target="_blank">hello</a>'),
-            ('[[missing:hello]]', '<a class="int" href="/missing%3Ahello">hello</a>'),
+            ('[[missing:hello]]', '<a class="int missing" href="/w/edit?page=missing%3Ahello" title="missing:hello (create)">hello</a>'),
             # Check the typography features.
             ('foo. bar', 'foo. bar'),
             ('foo.  bar', 'foo.&nbsp; bar'),
@@ -104,7 +104,7 @@ class TestCase(unittest.TestCase):
         self.assertEquals(util.wikify('[[List:foo]]'), '')
         model.WikiContent(title='bar', body='labels: foo\n---\n# bar\n\nHello, world.').put()
         model.WikiContent(title='baz', body='labels: foo\n---\n# baz\n\nHello, world.').put()
-        self.assertEquals(util.wikify('[[List:foo]]'), u'- <a class="int" href="/bar">bar</a>\n- <a class="int" href="/baz">baz</a>')
+        self.assertEquals(util.wikify('[[List:foo]]'), u'<ul class="labellist"><li><a class="int" href="/bar" title="bar">bar</a></li><li><a class="int" href="/baz" title="baz">baz</a></li></ul>')
 
     def test_children_listing(self):
         self.assertEquals(len(model.WikiContent.get_all()), 0)
@@ -113,8 +113,8 @@ class TestCase(unittest.TestCase):
         model.WikiContent(title='foo/baz').put()
         self.assertEquals(len(model.WikiContent.get_all()), 2)
 
-        self.assertEquals(util.wikify('[[ListChildren:foo]]'), u'- <a class="int" href="/foo/bar">foo/bar</a>\n- <a class="int" href="/foo/baz">foo/baz</a>')
-        self.assertEquals(util.wikify('[[ListChildren:]]', 'foo'), u'- <a class="int" href="/foo/bar">foo/bar</a>\n- <a class="int" href="/foo/baz">foo/baz</a>')
+        self.assertEquals(util.wikify('[[ListChildren:foo]]'), u'<ul class="labellist"><li><a class="int" href="/foo/bar" title="foo/bar">foo/bar</a></li><li><a class="int" href="/foo/baz" title="foo/baz">foo/baz</a></li></ul>')
+        self.assertEquals(util.wikify('[[ListChildren:]]', 'foo'), u'<ul class="labellist"><li><a class="int" href="/foo/bar" title="foo/bar">foo/bar</a></li><li><a class="int" href="/foo/baz" title="foo/baz">foo/baz</a></li></ul>')
 
     def test_settings_changing(self):
         self.assertEquals(settings.get('no-such-value'), None)

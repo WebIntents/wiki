@@ -127,6 +127,9 @@ def list_pages_by_label(label):
             "title": page.get_property('display_title', page.title),
         })
 
+    if not items:
+        return ""
+
     return u'<ul class="labellist">%s</ul>' % u''.join(items)
 
 
