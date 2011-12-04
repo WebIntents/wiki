@@ -41,6 +41,8 @@ def can_edit_page(title, user=None, is_admin=False):
             return not is_page_blacklisted(title)
     if user is None:
         return False
+    if settings.get('open-editing') == 'login':
+        return not is_page_blacklisted(title)
     if user.email() in settings.get('editors', []):
         return not is_page_blacklisted(title)
     return False
@@ -69,6 +71,8 @@ def can_read_page(title, user, is_admin):
         if options.get('private') != 'yes':
             return True
         return user and (user.email() in options.get('readers', []) or user.email() in options.get('editors', []))
+    elif settings.get('open-reading') == 'login':
+        return options.get('public') == 'yes' or user
     else:
         return options.get('public') == 'yes'
 
@@ -80,6 +84,8 @@ def can_see_most_pages(user, is_admin):
         return True
     if user is None:
         return False
+    if settings.get('open-reading') == 'login':
+        return True
     if user.email() in settings.get('readers', []):
         return True
     if user.email() in settings.get('editors', []):

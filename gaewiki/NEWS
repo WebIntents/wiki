@@ -1,3 +1,10 @@
+gae-wiki 1.2
+
+- Fixed a bug with /w/changes in open-reading wikis.
+- Added some caching to increase performance.
+- Added support for time zones.
+- Added a way to disable anonymous edits, but allow all logged in users.
+
 gae-wiki 1.1
 
 - Fixed issue 40: users now have custom nicknames, editable at /w/profile.

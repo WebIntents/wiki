@@ -304,6 +304,21 @@ class TestCase(unittest.TestCase):
         html = view.view_page(page1)
         print html
 
+    def test_logged_in_page_editing(self):
+        alice = users.User('alice@example.com')
+
+        settings.change({'open-editing': 'no'})
+        self.assertFalse(access.can_edit_page("some page", user=None))
+        self.assertFalse(access.can_edit_page("some page", user=alice))
+
+        settings.change({'open-editing': 'yes'})
+        self.assertTrue(access.can_edit_page("some page", user=None))
+        self.assertTrue(access.can_edit_page("some page", user=alice))
+
+        settings.change({'open-editing': 'login'})
+        self.assertFalse(access.can_edit_page("some page", user=None))
+        self.assertTrue(access.can_edit_page("some page", user=alice))
+
 
 def run_tests():
     suite = unittest.TestSuite()
