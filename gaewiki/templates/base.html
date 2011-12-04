@@ -2,16 +2,22 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
       <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-      {% if settings.styles %}
-        {% for style in settings.styles %}
+      {% if settings.extra_styles %}
+        {% for style in settings.extra_styles %}
           <link rel="stylesheet" type="text/css" href="{{ style|escape }}"/>
         {% endfor %}
       {% else %}
         <link rel="stylesheet" type="text/css" href="/gae-wiki-static/style.css"/>
-        <!--[if gte IE 6]>
-        <link rel="stylesheet" type="text/css" href="/gae-wiki-static/ie.css"/>
-        <![endif]-->
       {% endif %}
+        <!--[if gte IE 6]>
+      {% if settings.extra_ie_styles %}
+        {% for style in settings.extra_ie_styles %}
+          <link rel="stylesheet" type="text/css" href="{{ style|escape }}"/>
+        {% endfor %}
+      {% else %}
+        <link rel="stylesheet" type="text/css" href="/gae-wiki-static/ie.css"/>
+      {% endif %}
+        <![endif]-->
       <link rel="shortcut icon" href="{% if settings.favicon %}{{ settings.favicon|escape }}{% else %}/gae-wiki-static/favicon.ico{% endif %}" type="image/png" /> 
       <link rel="alternate" type="application/rss+xml" title="New Pages" href="/w/index.rss" /> 
       {% block heads %}{% endblock %}
