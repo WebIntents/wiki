@@ -115,17 +115,26 @@ class EditHandler(RequestHandler):
         title = self.request.get('page')
         if not title:
             raise BadRequest
+        self.edit_page(title)
+
+    def edit_page(self, title, body=None):
         page = model.WikiContent.get_by_title(title)
+        if body:
+            page.body = body
         user = users.get_current_user()
         is_admin = users.is_current_user_admin()
         if not access.can_edit_page(title, user, is_admin):
             raise Forbidden
-        if not page.is_saved():
+        if not body and not page.is_saved():
             page.load_template(user, is_admin)
         self.reply(view.edit_page(page), 'text/html')
 
     def post(self):
         title = urllib.unquote(str(self.request.get('name'))).decode('utf-8')
+        if self.request.get('Preview'):
+            self.edit_page(title, self.request.get('body'))
+            return
+
         user = users.get_current_user()
         if not access.can_edit_page(title, user, users.is_current_user_admin()):
             raise Forbidden

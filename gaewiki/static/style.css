@@ -227,6 +227,14 @@ table.forms p.hint {
   cursor: inherit;
 }
 
+#preview-back {
+  margin-left: 1em;
+  background: url(logo-186.png) repeat;
+}
+#preview {
+  background: rgba(255, 255, 255, 0.875);
+}
+
 
 /**
  * Tables.
