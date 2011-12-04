@@ -19,7 +19,7 @@
     <li><a href="/w/history?page={{ page.title|uurlencode }}">History</a></li>
   </ul>
   <div class="wtabs" id="pb">
-    <h1>{% if page.title %}{{ page.title|escape }}{% else %}New page{% endif %}</h1>
+    <h1>Page Preview: {% if page.title %}{{ page.title|escape }}{% else %}New page{% endif %}</h1>
       <div id="preview-back">
       <div id="preview">
       {{ page|wikify_page|safe }}
