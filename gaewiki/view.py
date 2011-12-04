@@ -116,10 +116,11 @@ def list_pages_feed(pages):
     })
 
 
-def show_page_history(title, revisions):
+def show_page_history(page, user=None, is_admin=False):
     return render('history.html', {
-        'page_title': title,
-        'revisions': revisions,
+        'page_title': page.title,
+        'revisions': page.get_history(),
+        'can_edit': access.can_edit_page(page.title, user, is_admin),
     })
 
 

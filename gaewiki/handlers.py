@@ -173,7 +173,7 @@ class PageHistoryHandler(RequestHandler):
         if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
             raise Forbidden
         page = model.WikiContent.get_by_title(title)
-        self.reply(view.show_page_history(title, page.get_history()), 'text/html')
+        self.reply(view.show_page_history(page, user=users.get_current_user(), is_admin=users.is_current_user_admin()), 'text/html')
 
 
 class RobotsHandler(RequestHandler):

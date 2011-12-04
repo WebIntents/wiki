@@ -12,7 +12,9 @@
   {% if map_url %}
     <li><a href="{{ map_url }}">Map</a></li>
   {% endif %}
+  {% if page.body %}
   <li><a href="/w/history?page={{ page.title|uurlencode }}">History</a></li>
+  {% endif %}
 </ul>
 <div class="wtabs extl" id="pb">
   {% if page.body %}
@@ -30,10 +32,12 @@
   {% else %}
     <h1>{{ page.title }}</h1>
     <p>This page does not exist.</p>
+    {% if can_edit %}
     <form method="get" action="/w/edit">
       <input type="hidden" name="page" value="{{ page.title|escape }}"/>
       <input type="submit" value="Create it"/>
     </form>
+    {% endif %}
   {% endif %}
 </div>
 {% endblock %}
