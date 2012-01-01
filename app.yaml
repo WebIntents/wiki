@@ -1,4 +1,4 @@
-application: gaewiki-demo
+application: afsvmatome
 version: 1
 runtime: python
 api_version: 1
@@ -6,6 +6,9 @@ api_version: 1
 handlers:
 - url: /gae-wiki-static/
   static_dir: gaewiki/static
+- url: /favicon.ico
+  static_files: gaewiki/static/favicon.ico
+  upload: gaewiki/static/favicon.ico
 - url: .*
   script: gaewiki
 
