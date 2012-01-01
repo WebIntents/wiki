@@ -6,8 +6,6 @@ import traceback
 import urllib
 
 from django.utils import simplejson
-from google.appengine.api import memcache
-from google.appengine.api import taskqueue
 from google.appengine.api import users
 from google.appengine.ext import webapp
 
@@ -86,18 +84,6 @@ class RequestHandler(webapp.RequestHandler):
     def is_ajax(self):
         return os.environ.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
 
-    def get_memcache(self):
-        """memcache is active only anonymous user."""
-        content = None
-        user = users.get_current_user()
-        if not user:
-            content = memcache.get(self.get_memcache_key())
-        if not content:
-            content = self.get_content()
-            if not user:
-                memcache.set(self.get_memcache_key(), content)
-        return content
-
 
 class PageHandler(RequestHandler):
     def get(self, page_name):
@@ -108,28 +94,15 @@ class PageHandler(RequestHandler):
             raise Exception('No such page.')
         if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
             raise Forbidden
-        self.title = title.replace('_', ' ')
-        self.raw = self.request.get("format") == "raw"
+        title = title.replace('_', ' ')
+        page = model.WikiContent.get_by_title(title)
 
-        if self.raw:
-            body = self.get_memcache()
+        if self.request.get("format") == "raw":
+            body = model.WikiContent.parse_body(page.body or '')
             content_type = str(body.get("content-type", "text/plain"))
             self.reply(body["text"], content_type=content_type)
         else:
-            self.reply(self.get_memcache(), 'text/html')
-
-    def get_memcache_key(self):
-        if self.raw:
-            return 'RawPage:' + self.title
-        else:
-            return 'Page:' + self.title
-
-    def get_content(self):
-        page = model.WikiContent.get_by_title(self.title)
-        if self.raw:
-            return model.WikiContent.parse_body(page.body or '')
-        else:
-            return view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin())
+            self.reply(view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin()), 'text/html')
 
 
 class StartPageHandler(PageHandler):
@@ -168,80 +141,39 @@ class EditHandler(RequestHandler):
         page = model.WikiContent.get_by_title(title)
         page.update(body=self.request.get('body'), author=user, delete=self.request.get('delete'))
         self.redirect('/' + urllib.quote(page.title.encode('utf-8').replace(' ', '_')))
-        taskqueue.add(url="/w/cache/purge", params={})
-
-class CachePurgeHandler(webapp.RequestHandler):
-    def get(self):
-        if users.is_current_user_admin():
-            taskqueue.add(url="/w/cache/purge", params={})
-
-    def post(self):
-        memcache.delete('Index:')
-        memcache.delete('IndexFeed:')
-        memcache.delete('Sitemap:')
-        memcache.delete('Changes:')
-        memcache.delete('ChangesFeed:')
-        for page in model.WikiContent.all():
-            memcache.delete('Page:' + page.title)
-            memcache.delete('RawPage:' + page.title)
-            memcache.delete('PageHistory:' + page.title)
-            memcache.delete('BackLinks:' + page.title)
-            for label in page.labels:
-                memcache.delete('PagesFeed:' + label)
-                memcache.delete('GeotaggedPagesFeed:' + label)
-                memcache.delete('GeotaggedPagesJson:' + label)
 
 
 class IndexHandler(RequestHandler):
     def get(self):
+        self.reply(view.list_pages(self.get_data()), 'text/html')
+
+    def get_data(self):
         self.check_open_wiki()
-        self.reply(self.get_memcache(), 'text/html')
-
-    def get_memcache_key(self):
-        return 'Index:'
-
-    def get_content(self):
-        return view.list_pages(model.WikiContent.get_all())
+        return model.WikiContent.get_all()
 
 
-class IndexFeedHandler(RequestHandler):
+class IndexFeedHandler(IndexHandler):
     def get(self):
+        self.reply(view.list_pages_feed(self.get_data()), 'application/atom+xml')
+
+    def get_data(self):
         self.check_open_wiki()
-        self.reply(self.get_memcache(), 'application/atom+xml')
-
-    def get_memcache_key(self):
-        return 'IndexFeed:'
-
-    def get_content(self):
-        return view.list_pages_feed(model.WikiContent.get_recently_added())
+        return model.WikiContent.get_recently_added()
 
 
-class PagesFeedHandler(RequestHandler):
-    def get(self):
+class PagesFeedHandler(IndexFeedHandler):
+    def get_data(self):
         self.check_open_wiki()
-        self.label = self.request.get('label')
-        self.reply(self.get_memcache(), 'application/atom+xml')
-
-    def get_memcache_key(self):
-        return 'PagesFeed:' + self.label
-
-    def get_content(self):
-        return view.list_pages_feed(model.WikiContent.get_recent_by_label(self.label))
+        return model.WikiContent.get_recent_by_label(self.request.get('label'))
 
 
 class PageHistoryHandler(RequestHandler):
     def get(self):
-        self.title = self.request.get('page')
-        if not access.can_read_page(self.title, users.get_current_user(), users.is_current_user_admin()):
+        title = self.request.get('page')
+        if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
             raise Forbidden
-        self.reply(self.get_memcache(), 'text/html')
-
-    def get_memcache_key(self):
-        return 'PageHistory:' + self.title
-
-    def get_content(self):
-        page = model.WikiContent.get_by_title(self.title)
-        return view.show_page_history(page, user=users.get_current_user(), is_admin=users.is_current_user_admin())
+        page = model.WikiContent.get_by_title(title)
+        self.reply(view.show_page_history(page, user=users.get_current_user(), is_admin=users.is_current_user_admin()), 'text/html')
 
 
 class RobotsHandler(RequestHandler):
@@ -256,50 +188,27 @@ class RobotsHandler(RequestHandler):
 class SitemapHandler(RequestHandler):
     def get(self):
         self.check_open_wiki()
-        self.reply(self.get_memcache(), 'text/xml')
-
-    def get_memcache_key(self):
-        return 'Sitemap:'
-
-    def get_content(self):
-        return view.get_sitemap(model.WikiContent.get_publicly_readable())
+        pages = model.WikiContent.get_publicly_readable()
+        self.reply(view.get_sitemap(pages), 'text/xml')
 
 
 class ChangesHandler(RequestHandler):
     def get(self):
-        self.reply(self.get_memcache(), 'text/html')
-
-    def get_memcache_key(self):
-        return 'Changes:'
-
-    def get_content(self):
-        return view.get_change_list(model.WikiContent.get_changes())
+        self.reply(view.get_change_list(model.WikiContent.get_changes()), 'text/html')
 
 
 class ChangesFeedHandler(RequestHandler):
     def get(self):
-        self.reply(self.get_memcache(), 'text/xml')
-
-    def get_memcache_key(self):
-        return 'ChangesFeed:'
-
-    def get_content(self):
-        return view.get_change_feed(model.WikiContent.get_changes())
+        self.reply(view.get_change_feed(model.WikiContent.get_changes()), 'text/xml')
 
 
 class BackLinksHandler(RequestHandler):
     def get(self):
-        self.title = self.request.get('page')
-        if not access.can_read_page(self.title, users.get_current_user(), users.is_current_user_admin()):
+        title = self.request.get('page')
+        if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
             raise Forbidden
-        self.reply(self.get_memcache(), 'text/html')
-
-    def get_memcache_key(self):
-        return 'BackLinks:' + self.title
-
-    def get_content(self):
-        page = model.WikiContent.get_by_title(self.title)
-        return view.get_backlinks(page, page.get_backlinks())
+        page = model.WikiContent.get_by_title(title)
+        self.reply(view.get_backlinks(page, page.get_backlinks()), 'text/html')
 
 
 class UsersHandler(RequestHandler):
@@ -365,32 +274,20 @@ class ProfileHandler(RequestHandler):
         self.redirect('/w/profile')
 
 
-class GeotaggedPagesFeedHandler(RequestHandler):
+class GeotaggedPagesFeedHandler(IndexFeedHandler):
     """Returns data for the /w/pages/geotagged.rss feed.  Supports the 'label'
     argument."""
-    def get(self):
+    def get_data(self):
         self.check_open_wiki()
-        self.label = self.request.get('label', None)
-        self.reply(self.get_memcache(), 'application/atom+xml')
-
-    def get_memcache_key(self):
-        return 'GeotaggedPagesFeed:' + self.label
-
-    def get_content(self):
-        return view.list_pages_feed(model.WikiContent.find_geotagged(label=self.label))
+        return model.WikiContent.find_geotagged(label=self.request.get('label', None))
 
 
 class GeotaggedPagesJsonHandler(RequestHandler):
     def get(self):
         self.check_open_wiki()
-        self.label = self.request.get('label', None)
-        self.reply(self.get_memcache(), 'text/javascript')
-
-    def get_memcache_key(self):
-        return 'GeotaggedPagesJson:' + self.label
-
-    def get_content(self):
-        return view.show_pages_map_data(model.WikiContent.find_geotagged(label=self.label))
+        label = self.request.get('label', None)
+        pages = model.WikiContent.find_geotagged(label=label)
+        self.reply(view.show_pages_map_data(pages), 'text/javascript')
 
 
 class PageMapHandler(RequestHandler):
@@ -453,6 +350,5 @@ handlers = [
     ('/w/profile', ProfileHandler),
     ('/w/users$', UsersHandler),
     ('/w/login', LoginHandler),
-    ('/w/cache/purge$', CachePurgeHandler),
     ('/(.+)$', PageHandler),
 ]
