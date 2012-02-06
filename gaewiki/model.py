@@ -354,8 +354,12 @@ class WikiRevision(db.Model):
     Stores older revisions of pages.
     """
     title = db.StringProperty()
-    wiki_page = db.ReferenceProperty(WikiContent)
+    #wiki_page = db.ReferenceProperty(WikiContent)
     revision_body = db.TextProperty(required=True)
     author = db.ReferenceProperty(WikiUser)
     created = db.DateTimeProperty(auto_now_add=True)
     pread = db.BooleanProperty()
+
+    @classmethod
+    def get_by_key(cls, key):
+        return db.Model.get(db.Key(key))

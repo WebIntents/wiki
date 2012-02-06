@@ -95,14 +95,26 @@ class PageHandler(RequestHandler):
         if not access.can_read_page(title, users.get_current_user(), users.is_current_user_admin()):
             raise Forbidden
         title = title.replace('_', ' ')
+
         page = model.WikiContent.get_by_title(title)
+        if self.request.get("r"):
+            revision = model.WikiRevision.get_by_key(self.request.get("r"))
+            if revision is None:
+                raise NotFound("No such revision.")
+            page.body = revision.revision_body
+            page.author = revision.author
+            page.updated = revision.created
 
         if self.request.get("format") == "raw":
             body = model.WikiContent.parse_body(page.body or '')
             content_type = str(body.get("content-type", "text/plain"))
             self.reply(body["text"], content_type=content_type)
         else:
-            self.reply(view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin()), 'text/html')
+            self.reply(view.view_page(page,
+                user=users.get_current_user(),
+                is_admin=users.is_current_user_admin(),
+                revision=self.request.get("r")),
+                'text/html')
 
 
 class StartPageHandler(PageHandler):
