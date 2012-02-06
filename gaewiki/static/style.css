@@ -228,10 +228,11 @@ table.forms p.hint {
 }
 
 #preview-back {
-  margin-left: 1em;
+  margin: 1em;
   background: url(logo-186.png) repeat;
 }
 #preview {
+  border: 1px solid;
   background: rgba(255, 255, 255, 0.875);
 }
 
