@@ -69,7 +69,7 @@ def get_footer():
     return body
 
 
-def view_page(page, user=None, is_admin=False):
+def view_page(page, user=None, is_admin=False, revision=None):
     page = page.get_redirected()
 
     if page.title.startswith("Label:") and not page.body:
@@ -81,6 +81,7 @@ def view_page(page, user=None, is_admin=False):
         'is_plain': page.get_property('format') == 'plain',
         'can_edit': access.can_edit_page(page.title, user, is_admin),
         'page_labels': page.get_property('labels', []),
+        'revision': revision,
     }
 
     # logging.debug(data)
@@ -91,7 +92,10 @@ def view_page(page, user=None, is_admin=False):
         elif data['can_edit'] or page.geopt:
             data['map_url'] = '/w/map?page=' + util.uurlencode(page.title)
 
-    logging.debug(u'Viewing page "%s"' % data['page'].title)
+    if revision:
+        logging.debug(u'Viewing page "%s" (revision %s)' % (data['page'].title, revision))
+    else:
+        logging.debug(u'Viewing page "%s"' % data['page'].title)
     return render('view_page.html', data)
 
 

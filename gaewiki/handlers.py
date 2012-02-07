@@ -110,6 +110,7 @@ class PageHandler(RequestHandler):
             raise Forbidden
         self.title = title.replace('_', ' ')
         self.raw = self.request.get("format") == "raw"
+        self.revision = self.request.get("r")
 
         if self.raw:
             body = self.get_memcache()
@@ -121,6 +122,8 @@ class PageHandler(RequestHandler):
     def get_memcache_key(self):
         if self.raw:
             return 'RawPage:' + self.title
+        elif self.revision:
+            return "PageRevision:" + self.revision
         else:
             return 'Page:' + self.title
 
@@ -129,7 +132,14 @@ class PageHandler(RequestHandler):
         if self.raw:
             return model.WikiContent.parse_body(page.body or '')
         else:
-            return view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin())
+            if self.revision:
+                revision = model.WikiRevision.get_by_key(self.request.get("r"))
+                if revision is None:
+                    raise NotFound("No such revision.")
+                page.body = revision.revision_body
+                page.author = revision.author
+                page.updated = revision.created
+            return view.view_page(page, user=users.get_current_user(), is_admin=users.is_current_user_admin(), revision=self.revision)
 
 
 class StartPageHandler(PageHandler):

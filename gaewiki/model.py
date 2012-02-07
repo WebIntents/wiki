@@ -359,3 +359,7 @@ class WikiRevision(db.Model):
     author = db.ReferenceProperty(WikiUser)
     created = db.DateTimeProperty(auto_now_add=True)
     pread = db.BooleanProperty()
+
+    @classmethod
+    def get_by_key(cls, key):
+        return db.Model.get(db.Key(key))
