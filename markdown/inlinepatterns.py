@@ -223,6 +223,13 @@ class HtmlPattern (Pattern):
 class LinkPattern (Pattern):
     """ Return a link element from the given match. """
     def handleMatch(self, m):
+        # Refuse to process unlabelled links.  In XHTML mode this produces a
+        # self-closing <a> tag which is misinterpreted by most browsers as an
+        # opening one and makes the rest of the page a link.  Which is
+        # definitely not the intended behaviour.
+        if not m.group(2):
+            return None
+
         el = markdown.etree.Element("a")
         el.text = m.group(2)
         title = m.group(11)

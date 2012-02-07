@@ -16,7 +16,7 @@ console:
 	PYTHONPATH=$(GAE_DIR):$(GAE_DIR)/lib/django_0_96 python
 
 test: test-syntax
-	PYTHONPATH=$(GAE_DIR):$(GAE_DIR)/lib/django_0_96 python gaewiki/tests.py
+	PYTHONPATH=.:$(GAE_DIR):$(GAE_DIR)/lib/django_0_96 python gaewiki/tests.py
 
 test-syntax:
 	pep8 -r --ignore E501 gaewiki/*.py

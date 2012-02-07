@@ -319,6 +319,10 @@ class TestCase(unittest.TestCase):
         self.assertFalse(access.can_edit_page("some page", user=None))
         self.assertTrue(access.can_edit_page("some page", user=alice))
 
+    def test_empty_links(self):
+        text = util.parse_markdown("[]()")
+        self.assertEquals(text, "<p>[]()</p>")
+
 
 def run_tests():
     suite = unittest.TestSuite()
