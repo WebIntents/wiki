@@ -69,7 +69,7 @@ def get_footer():
     return body
 
 
-def view_page(page, user=None, is_admin=False, revision=None):
+def view_page(page, user=None, is_admin=False):
     page = page.get_redirected()
 
     if page.title.startswith("Label:") and not page.body:
@@ -81,7 +81,6 @@ def view_page(page, user=None, is_admin=False, revision=None):
         'is_plain': page.get_property('format') == 'plain',
         'can_edit': access.can_edit_page(page.title, user, is_admin),
         'page_labels': page.get_property('labels', []),
-        'revision': revision,
     }
 
     # logging.debug(data)
