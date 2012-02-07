@@ -180,6 +180,7 @@ class EditHandler(RequestHandler):
         self.redirect('/' + urllib.quote(page.title.encode('utf-8').replace(' ', '_')))
         taskqueue.add(url="/w/cache/purge", params={})
 
+
 class CachePurgeHandler(webapp.RequestHandler):
     def get(self):
         if users.is_current_user_admin():
