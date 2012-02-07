@@ -346,7 +346,10 @@ class DataImportHandler(RequestHandler):
         loaded = simplejson.loads(self.request.get('file'))
         for title, content in loaded.items():
             page = model.WikiContent.get_by_title(title)
-            page.update(content['body'], content['author'] and users.User(content['author']))
+            author = content['author'] and users.User(content['author'])
+            page.update(content['body'], author, False)
+
+        self.reply("Done.")
 
 
 class InterwikiHandler(RequestHandler):
