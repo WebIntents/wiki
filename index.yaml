@@ -28,3 +28,11 @@ indexes:
   - name: labels
   - name: created
     direction: desc
+
+# To fix changes page being broken.
+- kind: WikiContent
+  properties:
+  - name: pread
+  - name: updated
+    direction: desc
+
