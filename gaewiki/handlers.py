@@ -10,6 +10,7 @@ from google.appengine.api import memcache
 from google.appengine.api import taskqueue
 from google.appengine.api import users
 from google.appengine.ext import webapp
+from google.appengine.runtime.apiproxy_errors import OverQuotaError
 
 import access
 import model
@@ -101,7 +102,10 @@ class RequestHandler(webapp.RequestHandler):
 
 class PageHandler(RequestHandler):
     def get(self, page_name):
-        self.show_page(urllib.unquote(page_name).decode('utf-8'))
+        try:
+            self.show_page(urllib.unquote(page_name).decode('utf-8'))
+        except OverQuotaError, e:
+            self.reply("Over quota.  Please try later.", status=502)
 
     def show_page(self, title):
         if title.startswith('w/'):
