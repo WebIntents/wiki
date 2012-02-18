@@ -18,6 +18,7 @@
 </ul>
 <div class="wtabs extl" id="pb">
   {% if page.body %}
+    {% if "/" in page.title %}{{ page.title|breadcrumbs|safe }}{% endif %}
     {% if is_plain %}
       <pre>{{ page|wikify_page }}</pre>
     {% else %}

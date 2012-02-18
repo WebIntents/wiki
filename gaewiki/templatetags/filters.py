@@ -70,3 +70,11 @@ def timezone(date, tz=None):
     if tz:
         return date.replace(tzinfo=pytz.UTC).astimezone(pytz.timezone(tz))
     return date
+
+@register.filter
+def breadcrumbs(pagename):
+    crumbs = pagename.split('/')[:-1]
+    return util.wikify_filter(''.join(
+        '[[%s|%s]] &raquo; ' % ('/'.join(crumbs[0:n+1]), crumb)
+        for (n, crumb) in zip(xrange(len(crumbs)), crumbs)
+        ))
