@@ -225,3 +225,20 @@ def cleanup_summary(text):
     text = cleanup_re_1.sub('', text)
     logging.debug(text)
     return text
+
+
+def extract_links(text):
+    if text is None:
+        return []
+
+    links = []
+
+    for link, title in re.findall(WIKI_WORD_PATTERN, text):
+        if link == "":
+            link = title
+        else:
+            link = link.rstrip("|")
+        if link not in links:
+            links.append(link)
+
+    return links

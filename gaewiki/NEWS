@@ -6,9 +6,12 @@ gae-wiki 1.2
 - Fixed viewing particular page revisions.
 - Fixed /w/data/import.
 - Fixed rendering of unlabelled links in Markdown.
+- Fixed w/changes.
+- Fixed backlinks.
 - Added some caching to increase performance.
 - Added support for time zones.
 - Added a way to disable anonymous edits, but allow all logged in users.
+- Added breadcrumbs for hierarchical data.
 
 gae-wiki 1.1
 

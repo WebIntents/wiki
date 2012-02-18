@@ -323,6 +323,22 @@ class TestCase(unittest.TestCase):
         text = util.parse_markdown("[]()")
         self.assertEquals(text, "<p>[]()</p>")
 
+    def test_backlink_extraction(self):
+        links = util.extract_links(None)
+        self.assertEquals(links, [])
+
+        text = "[[foo]], [[foo|bar]]"
+        links = util.extract_links(text)
+        self.assertEquals(links, ["foo"])
+
+    def test_backlinks(self):
+        page = model.WikiContent(title="test", body="[[foo]], [[bar]]")
+        page.put()
+        self.assertEquals(page.links, ["foo", "bar"])
+
+        page2 = model.WikiContent(title="foo", body=None)
+        self.assertEquals(page2.get_backlinks()[0].title, page.title)
+
 
 def run_tests():
     suite = unittest.TestSuite()

@@ -10,8 +10,8 @@
 <h1>{{ page_title|escape }}</h1>
 {% if page_links %}
 <p>The following pages link here:</p>
-<ul>{% for link in page_links %}
-  <li><a href="{{ link|pageurl }}">{{ link|escape }}</a></li>
+<ul>{% for page in page_links %}
+  <li><a href="{{ page.title|pageurl }}">{{ page.title|escape }}</a></li>
 {% endfor %}</ul>
 {% else %}
 <p>Other pages don't link to <a href="{{ page_title|pageurl }}">{{ page_title|escape }}</a>.</p>

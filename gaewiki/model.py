@@ -172,6 +172,7 @@ class WikiContent(db.Model):
                 self.title = options['name']
             self.__update_geopt()
 
+        self.links = util.extract_links(self.body)
         self.add_implicit_labels()
         db.Model.put(self)
         settings.check_and_flush(self)
