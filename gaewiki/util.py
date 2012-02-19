@@ -53,24 +53,21 @@ def parse_markdown(text):
 
 
 WIKI_WORD_PATTERN = re.compile('\[\[([^]|]+\|)?([^]]+)\]\]')
+WIKI_WORD_PATTERN2 = re.compile("\[\[(.+)\]\]")
 
 
 def wikify(text, title=None):
-    text, count = WIKI_WORD_PATTERN.subn(lambda x: wikify_one(x, title), text)
+    text, count = WIKI_WORD_PATTERN2.subn(lambda x: wikify_one(x, title), text)
     text = re.sub(r'\.  ', '.&nbsp; ', text)
     text = re.sub(u' +(—|--) +', u'&nbsp;— ', text)
     return text
 
 
 def wikify_one(pat, real_page_title):
-    """
-    Wikifies one link.
-    """
-    page_title = pat.group(2)
-    if pat.group(1):
-        page_name = pat.group(1).rstrip('|')
-    else:
-        page_name = page_title
+    """Wikifies one link."""
+    page_name = page_title = pat.group(1)
+    if "|" in page_name:
+        page_name, page_title = page_name.split("|", 1)
 
     # interwiki
     if ':' in page_name:
