@@ -282,6 +282,8 @@ class SitemapHandler(RequestHandler):
 
 class ChangesHandler(RequestHandler):
     def get(self):
+        if not access.can_see_most_pages(users.get_current_user(), users.is_current_user_admin()):
+            raise Forbidden
         self.reply(self.get_memcache(), 'text/html')
 
     def get_memcache_key(self):
@@ -293,6 +295,8 @@ class ChangesHandler(RequestHandler):
 
 class ChangesFeedHandler(RequestHandler):
     def get(self):
+        if not access.can_see_most_pages(users.get_current_user(), users.is_current_user_admin()):
+            raise Forbidden
         self.reply(self.get_memcache(), 'text/xml')
 
     def get_memcache_key(self):

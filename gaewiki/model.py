@@ -299,7 +299,7 @@ class WikiContent(db.Model):
 
     @classmethod
     def get_changes(cls):
-        if settings.get('open-reading') == 'yes':
+        if settings.get('open-reading') in ('yes', 'login'):
             pages = cls.all().order('-updated').fetch(20)
         else:
             pages = cls.gql('WHERE pread = :1 ORDER BY updated DESC', True).fetch(20)
