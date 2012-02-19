@@ -14,6 +14,7 @@ gae-wiki 1.2
 - Added a way to disable anonymous edits, but allow all logged in users.
 - Added breadcrumbs for hierarchical data.
 - Added memcache.
+- Added support for image uploads.
 
 gae-wiki 1.1
 

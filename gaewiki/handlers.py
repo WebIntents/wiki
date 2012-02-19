@@ -9,10 +9,13 @@ from django.utils import simplejson
 from google.appengine.api import memcache
 from google.appengine.api import taskqueue
 from google.appengine.api import users
+from google.appengine.ext import blobstore
 from google.appengine.ext import webapp
+from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.runtime.apiproxy_errors import OverQuotaError
 
 import access
+import images
 import model
 import settings
 import util
@@ -453,6 +456,58 @@ class LoginHandler(RequestHandler):
         self.redirect(users.create_login_url('/'))
 
 
+class ImageUploadHandler(RequestHandler, blobstore_handlers.BlobstoreUploadHandler):
+    def get(self):
+        user = users.get_current_user()
+        is_admin = users.is_current_user_admin()
+        if not access.can_upload_image(user, is_admin):
+            raise Forbidden
+
+        submit_url = blobstore.create_upload_url(self.request.path)
+
+        html = view.view_image_upload_page(user, is_admin, submit_url)
+        self.reply(html, "text/html")
+
+    def post(self):
+        if not access.can_upload_image(users.get_current_user(), users.is_current_user_admin()):
+            raise Forbidden
+        # After the file is uploaded, grab the blob key and return the image URL.
+        upload_files = self.get_uploads('file')  # 'file' is file upload field in the form
+        blob_info = upload_files[0]
+
+        image_page_url = "/w/image/view?key=" + str(blob_info.key())
+        return self.redirect(image_page_url)
+
+
+class ImageServeHandler(RequestHandler):
+    def get(self):
+        img = images.Image.get_by_key(self.request.get("key"))
+
+        data = {
+            "meta": img.get_info(),
+            "versions": [
+                ("thumbnail", img.get_url(75, True), img.get_code(75, True)),
+                ("small", img.get_url(200, False), img.get_code(200, False)),
+                ("medium", img.get_url(500, False), img.get_code(500, False)),
+            ]
+        }
+
+        page_title = "Image:" + img.get_key()
+        data["pages"] = model.WikiContent.find_backlinks_for(page_title)
+
+        html = view.view_image(data, user=users.get_current_user(),
+            is_admin=users.is_current_user_admin())
+        self.reply(html, 'text/html')
+
+
+class ImageListHandler(RequestHandler):
+    def get(self):
+        lst = images.Image.find_all()
+        html = view.view_image_list(lst, users.get_current_user(),
+            users.is_current_user_admin())
+        self.reply(html, "text/html")
+
+
 handlers = [
     ('/', StartPageHandler),
     ('/robots\.txt$', RobotsHandler),
@@ -464,6 +519,9 @@ handlers = [
     ('/w/data/import$', DataImportHandler),
     ('/w/edit$', EditHandler),
     ('/w/history$', PageHistoryHandler),
+    ('/w/image/upload', ImageUploadHandler),
+    ('/w/image/view', ImageServeHandler),
+    ('/w/image/list', ImageListHandler),
     ('/w/index$', IndexHandler),
     ('/w/index\.rss$', IndexFeedHandler),
     ('/w/interwiki$', InterwikiHandler),

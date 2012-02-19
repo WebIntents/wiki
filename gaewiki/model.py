@@ -229,7 +229,11 @@ class WikiContent(db.Model):
         return WikiRevision.gql('WHERE title = :1 ORDER BY created DESC', self.title).fetch(100)
 
     def get_backlinks(self):
-        return WikiContent.gql('WHERE links = :1', self.title).fetch(1000)
+        return self.find_backlinks_for(self.title)
+
+    @classmethod
+    def find_backlinks_for(cls, title, limit=1000):
+        return WikiContent.gql('WHERE links = :1', title).fetch(limit)
 
     def load_template(self, user, is_admin):
         template = '# PAGE_TITLE\n\n**PAGE_TITLE** is ...'

@@ -224,3 +224,30 @@ def show_pages_map_data(pages):
         })
 
     return 'var map_data = ' + simplejson.dumps(data) + ';'
+
+
+def view_image_upload_page(user, is_admin, submit_url):
+    data = {
+        "user": user,
+        "is_admin": is_admin,
+        "submit_url": submit_url,
+    }
+    return render("upload_image.html", data)
+
+
+def view_image(img, user, is_admin):
+    data = {
+        "image": img,
+        "user": user,
+        "is_admin": is_admin,
+    }
+    return render("view_image.html", data)
+
+
+def view_image_list(lst, user, is_admin):
+    data = {
+        "images": lst,
+        "user": user,
+        "is_admin": is_admin,
+    }
+    return render("image_list.html", data)

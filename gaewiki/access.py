@@ -91,3 +91,14 @@ def can_see_most_pages(user, is_admin):
     if user.email() in settings.get('editors', []):
         return True
     return False
+
+
+def can_upload_image(user=None, is_admin=False):
+    if is_admin:
+        return True
+
+    if settings.get('image-uploading') == 'yes':
+        return True
+    if user and settings.get('image-uploading') == 'login':
+        return True
+    return False

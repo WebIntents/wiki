@@ -9,6 +9,7 @@ import urllib
 import markdown
 import model
 import settings
+import images
 
 
 cleanup_re_1 = re.compile('<h\d>.*', re.MULTILINE | re.DOTALL)
@@ -81,6 +82,8 @@ def wikify_one(pat, real_page_title):
                 return process_special_token(parts[1], real_page_title)
             elif parts[0] == 'ListChildren':
                 return list_pages_by_label('gaewiki:parent:' + (parts[1] or real_page_title))
+            elif parts[0] == 'Image':
+                return render_image(parts[1].split(";"))
             iwlink = settings.get(u'interwiki-' + parts[0])
             if iwlink:
                 return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], iwlink.replace('%s', urllib.quote(parts[1].encode('utf-8'))), page_title)
@@ -103,6 +106,30 @@ def wikify_one(pat, real_page_title):
         "hint": cgi.escape(page_hint),
         "text": cgi.escape(page_text),
     }
+
+
+def render_image(args):
+    key = args[0]
+    size = None
+    crop = False
+    align = None
+
+    for arg in args[1:]:
+        if arg.startswith("size="):
+            size = int(arg[5:])
+        elif arg == "crop":
+            crop = True
+        elif arg in ("left", "right"):
+            align = arg
+
+    img = images.Image.get_by_key(key)
+
+    attrs = "src='%s' alt='%s'" % (img.get_url(size, crop),
+        cgi.escape(img.get_filename()))
+    if align is not None:
+        attrs += " align='%s'" % align
+
+    return "<a href='/w/image/view?key=%s' title='Click to view image details'><img %s/></a>" % (img.get_key(), attrs)
 
 
 def list_pages_by_label(label):
@@ -235,6 +262,10 @@ def extract_links(text):
             link = title
         else:
             link = link.rstrip("|")
+
+        if link.startswith("Image:"):
+            link = link.split(";")[0]
+
         if link not in links:
             links.append(link)
 
