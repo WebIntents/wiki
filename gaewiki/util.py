@@ -53,12 +53,11 @@ def parse_markdown(text):
     return markdown.markdown(text, settings.get('markdown-extensions', [])).strip()
 
 
-WIKI_WORD_PATTERN = re.compile('\[\[([^]|]+\|)?([^]]+)\]\]')
-WIKI_WORD_PATTERN2 = re.compile("\[\[(.+)\]\]")
+WIKI_WORD_PATTERN = re.compile("\[\[(.+?)\]\]")
 
 
 def wikify(text, title=None):
-    text, count = WIKI_WORD_PATTERN2.subn(lambda x: wikify_one(x, title), text)
+    text, count = WIKI_WORD_PATTERN.subn(lambda x: wikify_one(x, title), text)
     text = re.sub(r'\.  ', '.&nbsp; ', text)
     text = re.sub(u' +(—|--) +', u'&nbsp;— ', text)
     return text
@@ -257,11 +256,9 @@ def extract_links(text):
 
     links = []
 
-    for link, title in re.findall(WIKI_WORD_PATTERN, text):
-        if link == "":
-            link = title
-        else:
-            link = link.rstrip("|")
+    for link in re.findall(WIKI_WORD_PATTERN, text):
+        if "|" in link:
+            link = link.split("|", 1)[0]
 
         if link.startswith("Image:"):
             link = link.split(";")[0]

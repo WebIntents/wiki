@@ -71,6 +71,8 @@ class TestCase(unittest.TestCase):
             # Interwiki linking.
             ('[[google:hello]]', u'<a class="iw iw-google" href="http://www.google.ru/search?q=hello" target="_blank">hello</a>'),
             ('[[missing:hello]]', '<a class="int missing" href="/w/edit?page=missing%3Ahello" title="missing:hello (create)">hello</a>'),
+            # Multiple links on the same line.
+            ('[[foo]], [[bar]]', '<a class="int missing" href="/w/edit?page=foo" title="foo (create)">foo</a>, <a class="int missing" href="/w/edit?page=bar" title="bar (create)">bar</a>'),
             # Check the typography features.
             ('foo. bar', 'foo. bar'),
             ('foo.  bar', 'foo.&nbsp; bar'),
