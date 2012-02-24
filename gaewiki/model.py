@@ -291,7 +291,7 @@ class WikiContent(db.Model):
 
     @classmethod
     def get_all(cls):
-        return sorted(cls.all().order('title').fetch(1000), key=lambda p: p.title.lower())
+        return sorted(cls.all().order('title').fetch(1000), key=lambda p: p.title.lower() if ':' in p.title else ':' + p.title.lower())
 
     @classmethod
     def get_recently_added(cls, limit=100):
