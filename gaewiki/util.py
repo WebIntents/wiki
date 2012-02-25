@@ -82,7 +82,7 @@ def wikify_one(pat, real_page_title):
             elif parts[0] == 'ListChildren':
                 return list_pages_by_label('gaewiki:parent:' + (parts[1] or real_page_title))
             elif parts[0] == 'Image':
-                return render_image(parts[1].split(";"))
+                return render_image(parts[1].split(";"), page_title)
             iwlink = settings.get(u'interwiki-' + parts[0])
             if iwlink:
                 return '<a class="iw iw-%s" href="%s" target="_blank">%s</a>' % (parts[0], iwlink.replace('%s', urllib.quote(parts[1].encode('utf-8'))), page_title)
@@ -107,11 +107,14 @@ def wikify_one(pat, real_page_title):
     }
 
 
-def render_image(args):
+def render_image(args, title):
     key = args[0]
     size = None
     crop = False
     align = None
+
+    if not title:
+        title = 'Click to view image details'
 
     for arg in args[1:]:
         if arg.startswith("size="):
@@ -128,7 +131,7 @@ def render_image(args):
     if align is not None:
         attrs += " align='%s'" % align
 
-    return "<a href='/w/image/view?key=%s' title='Click to view image details'><img %s/></a>" % (img.get_key(), attrs)
+    return "<a href='/w/image/view?key=%s' title='%s'><img %s/></a>" % (img.get_key(), title, attrs)
 
 
 def list_pages_by_label(label):
