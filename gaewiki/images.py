@@ -39,7 +39,10 @@ class Image(object):
     def get_url(self, size=None, crop=False):
         """Returns a URL for accessing the image with specified parameters.
         Size limits width and height, crop=True makes it square."""
-        return get_serving_url(self.blob.key(), size, crop)
+        url = get_serving_url(self.blob.key(), size, crop)
+        if url.startswith('http://'):
+            url = url[5:]
+        return url
 
     def get_code(self, size=None, crop=False):
         """Returns the wiki code to embed this image."""
