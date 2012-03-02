@@ -4,6 +4,7 @@ import datetime
 import logging
 import random
 import re
+from uuid import uuid4 as uuid_generate
 
 from google.appengine.api import users
 from google.appengine.ext import db
@@ -88,10 +89,18 @@ class WikiContent(db.Model):
     labels = db.StringListProperty()
     # Pages that this one links to.
     links = db.StringListProperty()
+    # UUID so that history can track across name changes, etc.
+    uuid = db.StringProperty()
 
     def __init__(self, *args, **kwargs):
         super(WikiContent, self).__init__(*args, **kwargs)
         self._parsed_page = None
+        if self.body and not self.uuid:
+            self.uuid = uuid_generate().hex
+            self.put()
+            for rev in self.get_history(by_title=True):
+                rev.uuid = self.uuid
+                rev.put()
 
     def get_property(self, key, default=None):
         """Returns the value of a property."""
@@ -204,7 +213,7 @@ class WikiContent(db.Model):
     def backup(self):
         """Archives the current page revision."""
         logging.debug(u'Backing up page "%s"' % self.title)
-        archive = WikiRevision(title=self.title, revision_body=self.body, author=self.author, created=self.updated)
+        archive = WikiRevision(title=self.title, revision_body=self.body, author=self.author, created=self.updated, uuid=self.uuid)
         archive.put()
 
     def update(self, body, author, delete):
@@ -225,8 +234,11 @@ class WikiContent(db.Model):
 
         self.put()
 
-    def get_history(self):
-        return WikiRevision.gql('WHERE title = :1 ORDER BY created DESC', self.title).fetch(100)
+    def get_history(self, by_title=False):
+        if by_title:
+            return WikiRevision.gql('WHERE title = :1 ORDER BY created DESC', self.title).fetch(100)
+        else:
+            return WikiRevision.gql('WHERE uuid = :1 ORDER BY created DESC', self.uuid).fetch(100)
 
     def get_backlinks(self):
         return self.find_backlinks_for(self.title)
@@ -274,6 +286,12 @@ class WikiContent(db.Model):
             page = cls(title=title)
             if default_body is not None:
                 page.body = default_body
+        return page
+
+    @classmethod
+    def get_by_uuid(cls, uuid):
+        """Finds and loads the page by its uuid."""
+        page = cls.gql('WHERE uuid = :1', uuid).get()
         return page
 
     @classmethod
@@ -364,6 +382,8 @@ class WikiRevision(db.Model):
     author = db.ReferenceProperty(WikiUser)
     created = db.DateTimeProperty(auto_now_add=True)
     pread = db.BooleanProperty()
+    # UUID so that history can track across name changes, etc.
+    uuid = db.StringProperty()
 
     @classmethod
     def get_by_key(cls, key):

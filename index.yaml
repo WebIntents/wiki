@@ -36,3 +36,9 @@ indexes:
   - name: updated
     direction: desc
 
+# To support page UUIDs
+- kind: WikiRevision
+  properties:
+  - name: uuid
+  - name: created
+    direction: desc
