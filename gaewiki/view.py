@@ -108,8 +108,23 @@ def edit_page(page):
 
 def list_pages(pages):
     logging.debug(u'Listing %u pages.' % len(pages))
+    def link_line(title):
+        return ('    ' * title.count('/')) + '- ' + ('[' + title + '](/' + title + ')' if ':' in title else '[[' + title + ']]')
+    lines = []
+    for page in pages:
+        title = page.title
+        if '/' in title:
+            parent = title[:title.rfind('/')]
+            if not lines or lines[-1][0] != parent:
+                parent_path = parent.split('/')
+                for depth in xrange(1, len(parent_path)+1):
+                    target = '/'.join(parent_path[:depth])
+                    if not lines or not lines[-1][0].startswith(target):
+                        lines.append((target, link_line(target)))
+        lines.append((title, link_line(title)))
     return render('index.html', {
         'pages': pages,
+        'html': util.wikify(util.parse_markdown('\n'.join(line[1] for line in lines))),
     })
 
 

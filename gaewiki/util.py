@@ -68,6 +68,8 @@ def wikify_one(pat, real_page_title):
     page_name = page_title = pat.group(1)
     if "|" in page_name:
         page_name, page_title = page_name.split("|", 1)
+    elif '/' in page_name:
+        page_title = page_name.split('/')[-1]
 
     # interwiki
     if ':' in page_name:

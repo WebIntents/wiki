@@ -10,13 +10,7 @@
 <h1>Page index</h1>
 
 {% if pages %}
-  <ul>
-    {% for page in pages %}{% if page.redirect %}{% else %}
-    <li>
-      <a class="int" href="{{ page.title|pageurl }}">{{ page.title|escape }}</a>
-    </li>
-    {% endif %}{% endfor %}
-  </ul>
+  {{ html|safe }}
 {% else %}
 <p>Nothing to see here.</p>
 {% endif %}
