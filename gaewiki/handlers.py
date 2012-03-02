@@ -4,6 +4,7 @@ import logging
 import os
 import traceback
 import urllib
+from difflib import HtmlDiff
 
 from django.utils import simplejson
 from google.appengine.api import memcache
@@ -507,6 +508,32 @@ class ImageListHandler(RequestHandler):
             users.is_current_user_admin())
         self.reply(html, "text/html")
 
+class DiffHandler(RequestHandler):
+    def get(self):
+        r1 = self.request.get('r1')
+        r2 = self.request.get('r2')
+        if r1:
+            rev1 = model.WikiRevision.get_by_key(r1)
+        else:
+            rev1 = False
+        if r2:
+            rev2 = model.WikiRevision.get_by_key(r2)
+        else:
+            rev2 = False
+        if not rev1 and not rev2:
+            raise BadRequest()
+        elif not rev1:
+            rev1 = rev2
+            rev2 = False
+        if not rev2:
+            rev2body = model.WikiContent.get_by_uuid(rev1.uuid).body
+        else:
+            rev2body = rev2.revision_body
+        rev1body = rev1.revision_body
+        html = view.view_diff(rev1, rev2, HtmlDiff().make_table(rev1body.split('\n'), rev2body.split('\n')),
+            users.get_current_user(), users.is_current_user_admin())
+        self.reply(html, 'text/html')
+
 
 handlers = [
     ('/', StartPageHandler),
@@ -534,5 +561,6 @@ handlers = [
     ('/w/users$', UsersHandler),
     ('/w/login', LoginHandler),
     ('/w/cache/purge$', CachePurgeHandler),
+    ('/w/diff/$', DiffHandler),
     ('/(.+)$', PageHandler),
 ]

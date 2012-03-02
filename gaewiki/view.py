@@ -251,3 +251,13 @@ def view_image_list(lst, user, is_admin):
         "is_admin": is_admin,
     }
     return render("image_list.html", data)
+
+
+def view_diff(r1, r2, diff_table, user, is_admin):
+    data = {
+        "page_title": r1.title,
+        "diff_table": diff_table,
+        "user": user,
+        "is_admin": is_admin,
+    }
+    return render("diff.html", data)

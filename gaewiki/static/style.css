@@ -200,6 +200,35 @@ textarea {
 
 
 /**
+ * Diff.
+ */
+table.diff {
+  font-family: monospace;
+  font-size: 90%;
+  border: medium;
+}
+.diff_header {
+  background-color: #e0e0e0;
+}
+td.diff_header {
+  text-align: right;
+}
+.diff_next {
+  display: none;
+}
+.diff_add {
+  background-color: #aaffaa;
+}
+.diff_chg {
+  background-color: #ffff77;
+}
+.diff_sub {
+  background-color: #ffaaaa;
+}
+
+
+
+/**
  * Forms.
  */
 table.forms {

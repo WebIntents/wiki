@@ -10,14 +10,15 @@
 </ul>
 <div id="pb" class="wtabs">
 <h1>{{ page_title|escape }}</h1>
-
-{% if revisions %}
-  <p>The following revisions are available:</p>
-  <ul>{% for revision in revisions %}
-    <li><a class="int" href="{{ page_title|pageurl }}?r={{ revision.key }}">Revision from {{ revision.created|timezone|date:"Y/m/d H:i:s"}}</a></li>
-  {% endfor %}</ul>
-{% else %}
-<p>We have no records for this page.</p>
-{% endif %}
+<p>The following revisions are available:</p>
+<form method="GET" action="/w/diff/"><ul>
+  <li><input checked="checked" id="r2" name="r2" type="radio" value="">
+		<input id="r1" name="r1" type="radio" value="" disabled="disabled">
+		<a class="int" href="{{ page_title|pageurl }}">Current Revision</a></li>
+{% for revision in revisions %}
+  <li><input id="r2-{{ revision.key }}" name="r2" type="radio" value="{{ revision.key }}"{% if forloop.last %} disabled="disabled"{% endif %}>
+		<input checked="checked" id="r1-{{ revision.key }}" name="r1" type="radio" value="{{ revision.key }}">
+		<a class="int" href="{{ page_title|pageurl }}?r={{ revision.key }}">Revision from {{ revision.created|timezone|date:"Y/m/d H:i:s"}}</a></li>
+{% endfor %}</ul><input type="submit" value="diff" /></form>
 </div>
 {% endblock %}
