@@ -99,10 +99,11 @@ def view_page(page, user=None, is_admin=False, revision=None):
     return render('view_page.html', data)
 
 
-def edit_page(page):
+def edit_page(page, comment=None):
     logging.debug(u'Editing page "%s"' % page.title)
     return render('edit_page.html', {
         'page': page,
+        'comment': comment,
     })
 
 
@@ -138,6 +139,7 @@ def list_pages_feed(pages):
 def show_page_history(page, user=None, is_admin=False):
     return render('history.html', {
         'page_title': page.title,
+        'page': page,
         'revisions': page.get_history(),
         'can_edit': access.can_edit_page(page.title, user, is_admin),
     })

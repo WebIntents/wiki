@@ -34,6 +34,7 @@
     <form action="/w/edit" method="POST" class="markdown editor">
         <input type="hidden" name="name" value="{{ page.title|uurlencode }}"/>
         <textarea rows="20" cols="80" name="body" id="editor">{% if page.body %}{{ page.get_actual_body }}{% endif %}</textarea>
+		<p>Revision comment: <input type="text" name="comment" value="{% if comment %}{{ comment }}{% endif %}" style="width:30em;"/></p>
         {% if page.is_saved %}
         <p><label><input type="checkbox" value="1" name="delete"/>Delete this page</label></p>
         {% endif %}

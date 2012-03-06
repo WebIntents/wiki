@@ -11,14 +11,25 @@
 <div id="pb" class="wtabs">
 <h1>{{ page_title|escape }}</h1>
 <p>The following revisions are available:</p>
-<form method="GET" action="/w/diff/"><ul>
-  <li><input checked="checked" id="r2" name="r2" type="radio" value="">
-		<input id="r1" name="r1" type="radio" value="" disabled="disabled">
-		<a class="int" href="{{ page_title|pageurl }}">Current Revision</a></li>
+<form method="GET" action="/w/diff/"><table class="c">
+  <thead><tr>
+	<th></th><th></th>
+	<th>Revision Date</th>
+	<th>Revision Comment</th>
+  </tr></thead>
+  <tbody><tr>
+	<td></td>
+    <td><input checked="checked" id="r2" name="r2" type="radio" value=""></td>
+    <td><a class="int" href="{{ page_title|pageurl }}">{{ page.updated|timezone|date:"Y/m/d H:i:s"}}</a></td>
+    <td><a class="int" href="{{ page_title|pageurl }}">{% if page.comment %}{{ page.comment }}{% else %}(current revision){% endif %}</a></td>
+  </tr>
 {% for revision in revisions %}
-  <li><input id="r2-{{ revision.key }}" name="r2" type="radio" value="{{ revision.key }}"{% if forloop.last %} disabled="disabled"{% endif %}>
-		<input checked="checked" id="r1-{{ revision.key }}" name="r1" type="radio" value="{{ revision.key }}">
-		<a class="int" href="{{ page_title|pageurl }}?r={{ revision.key }}">Revision from {{ revision.created|timezone|date:"Y/m/d H:i:s"}}</a></li>
-{% endfor %}</ul><input type="submit" value="diff" /></form>
+  <tr>
+	<td><input {% if forloop.first %}checked="checked" {% endif %}id="r1-{{ revision.key }}" name="r1" type="radio" value="{{ revision.key }}"></td>
+	<td>{% if not forloop.last %}<input id="r2-{{ revision.key }}" name="r2" type="radio" value="{{ revision.key }}">{% endif %}</td>
+    <td><a class="int" href="{{ page_title|pageurl }}?r={{ revision.key }}">{{ revision.created|timezone|date:"Y/m/d H:i:s"}}</a></td>
+    <td><a class="int" href="{{ page_title|pageurl }}?r={{ revision.key }}">{% if revision.comment %}{{ revision.comment }}{% else %}(none){% endif %}</a></td>
+  </tr>
+{% endfor %}</tbody></table><input type="submit" value="diff" /></form>
 </div>
 {% endblock %}

@@ -91,6 +91,8 @@ class WikiContent(db.Model):
     links = db.StringListProperty()
     # UUID so that history can track across name changes, etc.
     uuid = db.StringProperty()
+    # Revision comment
+    comment = db.StringProperty()
 
     def __init__(self, *args, **kwargs):
         super(WikiContent, self).__init__(*args, **kwargs)
@@ -213,10 +215,10 @@ class WikiContent(db.Model):
     def backup(self):
         """Archives the current page revision."""
         logging.debug(u'Backing up page "%s"' % self.title)
-        archive = WikiRevision(title=self.title, revision_body=self.body, author=self.author, created=self.updated, uuid=self.uuid)
+        archive = WikiRevision(title=self.title, revision_body=self.body, author=self.author, created=self.updated, uuid=self.uuid, comment=self.comment)
         archive.put()
 
-    def update(self, body, author, delete):
+    def update(self, body, author, comment, delete):
         if self.is_saved():
             self.backup()
             if delete:
@@ -229,6 +231,7 @@ class WikiContent(db.Model):
         self.body = body
         self.author = WikiUser.get_or_create(author)
         self.updated = datetime.datetime.now()
+        self.comment = comment
 
         # TODO: cross-link
 
@@ -384,6 +387,8 @@ class WikiRevision(db.Model):
     pread = db.BooleanProperty()
     # UUID so that history can track across name changes, etc.
     uuid = db.StringProperty()
+    # Revision comment
+    comment = db.StringProperty()
 
     @classmethod
     def get_by_key(cls, key):

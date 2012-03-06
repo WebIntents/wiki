@@ -162,7 +162,7 @@ class EditHandler(RequestHandler):
             raise BadRequest
         self.edit_page(title)
 
-    def edit_page(self, title, body=None):
+    def edit_page(self, title, body=None, comment=None):
         page = model.WikiContent.get_by_title(title)
         if body:
             page.body = body
@@ -172,19 +172,19 @@ class EditHandler(RequestHandler):
             raise Forbidden
         if not body and not page.is_saved():
             page.load_template(user, is_admin)
-        self.reply(view.edit_page(page), 'text/html')
+        self.reply(view.edit_page(page, comment), 'text/html')
 
     def post(self):
         title = urllib.unquote(str(self.request.get('name'))).decode('utf-8')
         if self.request.get('Preview'):
-            self.edit_page(title, self.request.get('body'))
+            self.edit_page(title, self.request.get('body'), self.request.get('comment'))
             return
 
         user = users.get_current_user()
         if not access.can_edit_page(title, user, users.is_current_user_admin()):
             raise Forbidden
         page = model.WikiContent.get_by_title(title)
-        page.update(body=self.request.get('body'), author=user, delete=self.request.get('delete'))
+        page.update(body=self.request.get('body'), author=user, comment=self.request.get('comment'), delete=self.request.get('delete'))
         self.redirect('/' + urllib.quote(page.title.encode('utf-8').replace(' ', '_')))
         taskqueue.add(url="/w/cache/purge", params={})
 
