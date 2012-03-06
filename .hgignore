@@ -2,5 +2,6 @@ syntax: glob
 *.pyc
 *.sh
 *~
+.*.swp
 .tmp
 config.py
