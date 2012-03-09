@@ -10,6 +10,11 @@
 </ul>
 <div id="pb" class="wtabs">
 <h1>{{ page_title|escape }}</h1>
-{{ diff_table|safe }}
+<p>Comparing <em>{% if r1.comment %}{{ r1.comment }}{% else %}[no comment]{% endif %} ({{ r1updated|timezone|date:"Y/m/d H:i:s"}})</em>
+to <em>{% if r2.comment %}{{ r2.comment }}{% else %}[no comment]{% endif %} ({{ r2updated|timezone|date:"Y/m/d H:i:s"}})</em>:
+</p>
+<pre class="diff">
+{{ diff_html|safe }}
+</pre>
 </div>
 {% endblock %}

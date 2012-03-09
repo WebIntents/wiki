@@ -4,7 +4,6 @@ import logging
 import os
 import traceback
 import urllib
-from difflib import HtmlDiff
 
 from django.utils import simplejson
 from google.appengine.api import memcache
@@ -526,12 +525,8 @@ class DiffHandler(RequestHandler):
             rev1 = rev2
             rev2 = False
         if not rev2:
-            rev2body = model.WikiContent.get_by_uuid(rev1.uuid).body
-        else:
-            rev2body = rev2.revision_body
-        rev1body = rev1.revision_body
-        html = view.view_diff(rev1, rev2, HtmlDiff().make_table(rev1body.split('\n'), rev2body.split('\n')),
-            users.get_current_user(), users.is_current_user_admin())
+            rev2 = model.WikiContent.get_by_uuid(rev1.uuid)
+        html = view.view_diff(rev1, rev2, users.get_current_user(), users.is_current_user_admin())
         self.reply(html, 'text/html')
 
 

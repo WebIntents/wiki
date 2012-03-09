@@ -2,6 +2,7 @@
 
 import logging
 import os
+import difflib
 
 from django.utils import simplejson
 from google.appengine.api import users
@@ -270,11 +271,35 @@ def view_image_list(lst, user, is_admin):
     return render("image_list.html", data)
 
 
-def view_diff(r1, r2, diff_table, user, is_admin):
+def view_diff(r1, r2, user, is_admin):
+    a = r1.revision_body
+    if hasattr(r2, 'revision_body'):
+        b = r2.revision_body
+    else:
+        b = r2.body
+    seqm = difflib.SequenceMatcher(None, a, b)
+    output = []
+    for opcode, a0, a1, b0, b1 in seqm.get_opcodes():
+        if opcode == 'equal':
+            output.append(seqm.a[a0:a1])
+        elif opcode == 'insert':
+            output.append("<ins>" + seqm.b[b0:b1] + "</ins>")
+        elif opcode == 'delete':
+            output.append("<del>" + seqm.a[a0:a1] + "</del>")
+        elif opcode == 'replace':
+            output.append("<del>" + seqm.a[a0:a1] + "</del>")
+            output.append("<ins>" + seqm.b[b0:b1] + "</ins>")
+        else:
+            raise RuntimeError, "unexpected opcode"
     data = {
-        "page_title": r1.title,
-        "diff_table": diff_table,
+        "r1": r1,
+        "r2": r2,
+        "r1updated": r1.updated if hasattr(r1, 'updated') else r1.created,
+        "r2updated": r2.updated if hasattr(r2, 'updated') else r2.created,
+        "page_title": r2.title,
+        "diff_html": ''.join(output),
         "user": user,
         "is_admin": is_admin,
+        'can_edit': access.can_edit_page(r2.title, user, is_admin),
     }
     return render("diff.html", data)
