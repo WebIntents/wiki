@@ -3,6 +3,7 @@
 import logging
 import os
 import difflib
+from urllib import quote
 
 from django.utils import simplejson
 from google.appengine.api import users
@@ -34,9 +35,9 @@ def render(template_name, data):
     if 'user' not in data:
         data['user'] = model.WikiUser.get_or_create(users.get_current_user())
     if data['user']:
-        data['log_out_url'] = users.create_logout_url(os.environ['PATH_INFO'])
+        data['log_out_url'] = users.create_logout_url(quote(os.environ['PATH_INFO']))
     else:
-        data['log_in_url'] = users.create_login_url(os.environ['PATH_INFO'])
+        data['log_in_url'] = users.create_login_url(quote(os.environ['PATH_INFO']))
     if 'is_admin' not in data:
         data['is_admin'] = users.is_current_user_admin()
     if 'sidebar' not in data:
