@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block heads %}{% if can_edit %}
+  <link rel="alternate" type="application/x-wiki" href="/w/edit?page={{ page.title|uurlencode }}"/>
+{% endif %}{% endblock %}
+{% block title %}{{ page.get_display_title|escape }}{% if settings.wiki_title %} — {{ settings.wiki_title|escape }}{% endif %}{% endblock %}
+{% block content %}
+<ul id="tabs"{% if page.is_locked %} class="locked"{% else %}{% endif %}>
+  <li class="active"><a class="view" href="{{ page.title|pageurl }}">View</a></li>
+  {% if can_edit %}
+    <li><a href="/w/edit?page={{ page.title|uurlencode }}{% if page.revision %}&amp;r={{ page.revision }}{% endif %}">Edit</a></li>
+  {% endif %}
+  {% if map_url %}
+    <li><a href="{{ map_url }}">Map</a></li>
+  {% endif %}
+  {% if page.body %}
+  <li><a href="/w/history?page={{ page.title|uurlencode }}">History</a></li>
+  {% endif %}
+</ul>
+<div class="wtabs extl" id="pb">
+  {% if page.body %}
+    {% if "/" in page.title %}{{ page.title|breadcrumbs|safe }}{% endif %}
+    {% if is_plain %}
+      <pre>{{ page|wikify_page }}</pre>
+    {% else %}
+      {{ page|wikify_page|safe }}
+      {% if page_labels %}
+        <p class="categories">{% if settings.labels_text %}{{ settings.labels_text }}{% else %}Labels{% endif %}: {% for label in page_labels %}{% if forloop.first %}{% else %}, {% endif %}<a class="int" href="{{ label|labelurl }}">{{ label|escape }}</a>{% endfor %}.</p>
+      {% endif %}
+      {% if page.comments_enabled %}
+        {{ settings.comments_code|safe }}
+      {% endif %}
+    {% endif %}
+  {% else %}
+    <h1>{{ page.title }}</h1>
+    <p>This page does not exist.</p>
+    {% if can_edit %}
+    <form method="get" action="/w/edit">
+      <input type="hidden" name="page" value="{{ page.title|escape }}"/>
+      <input type="submit" value="Create it"/>
+    </form>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

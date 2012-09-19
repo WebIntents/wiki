@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Editing "{{ page.title|escape }}"{% if settings.wiki_title %} — {{ settings.wiki_title|escape }}{% endif %}{% endblock %}
+{% block heads %}
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+<!--
+<script type="text/javascript" src="/gae-wiki-static/scripts/markitup/jquery.markitup.pack.js"></script>
+<script type="text/javascript" src="/gae-wiki-static/scripts/markitup/sets/markdown/set.js"></script>
+-->
+<script type="text/javascript" src="/gae-wiki-static/editor.js"></script>
+<!--
+<link rel="stylesheet" type="text/css" href="/gae-wiki-static/scripts/markitup/skins/markitup/style.css" />
+<link rel="stylesheet" type="text/css" href="/gae-wiki-static/scripts/markitup/sets/markdown/style.css" />
+-->
+{% endblock %}
+{% block content %}
+  <ul id="tabs">
+    <li><a href="{{ page.title|pageurl }}">View</a></li>
+    <li class="active"><a href="/w/edit?page={{ page.title|uurlencode }}">Edit</a></li>
+    <li><a href="/w/history?page={{ page.title|uurlencode }}">History</a></li>
+  </ul>
+  <div class="wtabs" id="pb">
+    <h1>Page Preview: {% if page.title %}{{ page.title|escape }}{% else %}New page{% endif %}</h1>
+      <div id="preview-back">
+      <div id="preview">
+      {{ page|wikify_page|safe }}
+      {% if page_labels %}
+        <p class="categories">{% if settings.labels_text %}{{ settings.labels_text }}{% else %}Labels{% endif %}: {% for label in page_labels %}{% if forloop.first %}{% else %}, {% endif %}<a class="int" href="{{ label|labelurl }}">{{ label|escape }}</a>{% endfor %}.</p>
+      {% endif %}
+      {% if page.comments_enabled %}
+        {{ settings.comments_code|safe }}
+      {% endif %}
+      </div>
+      </div>
+    <form action="/w/edit" method="POST" class="markdown editor">
+        <input type="hidden" name="name" value="{{ page.title|uurlencode }}"/>
+        <textarea rows="20" cols="80" name="body" id="editor">{% if page.body %}{{ page.get_actual_body }}{% endif %}</textarea>
+		<p>Revision comment: <input type="text" name="comment" value="{% if comment %}{{ comment }}{% endif %}" style="width:30em;"/></p>
+        {% if page.is_saved %}
+        <p><label><input type="checkbox" value="1" name="delete"/>Delete this page</label></p>
+        {% endif %}
+        <p class="extl">You can use HTML and <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown</a> for formatting, <a class="int" href="/w/interwiki" target="_blank">interwikis</a> for linking.</p>
+        <p>You can <a href="/w/image/upload" target="_blank">upload images</a> to embed them, or embed <a href="/w/image/list" target="_blank">an existing one</a>.</p>
+        <input type="submit" name="Preview" value="Preview"/> or <input type="submit" name="Save" value="Save Changes"/> or <a class="int" href="{{ page.title|pageurl }}">cancel</a>
+    </form>
+  </div>
+{% endblock %}

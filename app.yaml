@@ -1,0 +1,21 @@
+application: webintents-wiki
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /gae-wiki-static/
+  static_dir: gaewiki/static
+- url: /favicon.ico
+  static_files: gaewiki/static/favicon.ico
+  upload: gaewiki/static/favicon.ico
+- url: .*
+  script: gaewiki
+
+#- url: /static/
+#  static_dir: static
+#- url: .*
+#  script: handlers.py
+
+builtins:
+- datastore_admin: on

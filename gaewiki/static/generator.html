@@ -1,0 +1,136 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+   
+      body * {
+       box-sizing: border-box;
+      }
+ 
+      form {
+        float:left;
+        width: 250px;
+        margin-right: 10px;
+      }  
+  
+      form > * {
+        display: block;
+        width: 100%;
+      }
+
+      pre {
+        margin-left: 260px;
+      }
+
+      #controls {
+        clear: both;
+      }
+      
+    </style>
+    <script>
+    var init = function() {
+      var action = document.getElementById("action");
+      var mimeMajor = document.getElementById("mimeMajor");
+      var mimeMinor = document.getElementById("mimeMinor");
+      var output = document.getElementById("output");
+      var url = document.getElementById("url");
+      var file = document.getElementById("blob");
+      var run = document.getElementById("run");
+
+      var updateFromValues = function(elements) {
+        elements = (elements instanceof Array) ? elements : [elements];
+        for(var element, i=0; element = elements[i]; i++) {
+          var updateElement = document.querySelector("." + element.id);
+          updateElement.textContent = element.value;
+        }
+      }
+
+      var onChange = function(e) {
+        updateFromValues(e.target);
+      };
+
+      var onFileChange = function(e) {
+        var element = e.target.id;
+        var updateElement = document.querySelector("." + element);
+        updateElement.textContent = e.target.value;
+      };
+
+      var updateAll = function() {
+        updateFromValues([action, mimeMinor, mimeMajor, url]);
+      };
+
+      var onRun = function(e) {
+        eval(output.textContent);
+      };
+
+      // Setup On Change.
+      action.addEventListener("change", onChange, false);
+      mimeMinor.addEventListener("change", onChange, false);
+      mimeMajor.addEventListener("change", onChange, false);
+      output.addEventListener("change", onChange, false);
+      url.addEventListener("change", onChange, false);
+      file.addEventListener("change", onFileChange, false);
+
+      run.addEventListener("click", onRun, false);
+
+      updateAll(); 
+    };
+ 
+    window.addEventListener("load", init, false); 
+    </script>
+  </head>
+  <body>
+    <form>
+    <label for="action">Action:</label>
+    <select id="action">
+      <option value="share">Share</option>
+      <option value="edit">Edit</option>
+      <option value="pick">Pick</option>
+      <option value="save">Save</option>
+      <option value="view">View</option>
+      <option value="subscribe">Subscribe</option>
+    </select>
+    <label for="mimeMajor">Mime Type:</label>
+    <select id="mimeMajor">
+      <option value="application">application</option>
+      <option value="audio">audio</option>
+      <option value="image">image</option>
+      <option value="multipart">multipart</option>
+      <option value="text" selected>text</option>
+      <option value="video">video</option>
+    </select>
+    <label for="mimeMinor">Minor Type:</label>
+    <input type="text" id="mimeMinor" value="*" />
+    <label for="url">Url:</label>
+    <input type="text" id="url" placeholder="Url" />
+    <label for="file">File:</label>
+    <input type="file" id="blob" />
+  </form>
+  <pre id="output">
+var data = {
+  "url": "<span class="url"></span>",
+  "blob": <span class="blob">undefined</span>
+};
+
+var onSuccess = function(data) {
+  /* Enter code here to handle success  */
+};
+
+var onFailure = function(data) {
+  /* Enter code here to handle failure  */
+};
+
+var intent = new WebKitIntent(
+  { 
+    "action": "http://webintents.org/<span class="action"></span>", 
+    "type": "<span class="mimeMajor"></span>/<span class="mimeMinor"></span>", 
+    "data": data
+  });
+
+window.navigator.webkitStartActivity(intent, onSuccess, onFailure);
+  </pre>
+  <div id="controls">
+    <button id="run">Run</button>
+   </div>
+  </body>
+</html>

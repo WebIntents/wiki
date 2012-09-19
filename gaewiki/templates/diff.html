@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title|escape }}{% endblock %}
+{% block content %}
+<ul id="tabs">
+  <li><a href="{{ page_title|pageurl }}">View</a></li>
+  {% if can_edit %}
+  <li><a href="/w/edit?page={{ page_title|uurlencode }}">Edit</a></li>
+  {% endif %}
+  <li class="active"><a href="/w/history?page={{ page_title|uurlencode }}">History</a></li>
+</ul>
+<div id="pb" class="wtabs">
+<h1>{{ page_title|escape }}</h1>
+<p>Comparing <em>{% if r1.comment %}{{ r1.comment }}{% else %}[no comment]{% endif %} ({{ r1updated|timezone|date:"Y/m/d H:i:s"}})</em>
+to <em>{% if r2.comment %}{{ r2.comment }}{% else %}[no comment]{% endif %} ({{ r2updated|timezone|date:"Y/m/d H:i:s"}})</em>:
+</p>
+<pre class="diff">
+{{ diff_html|safe }}
+</pre>
+</div>
+{% endblock %}

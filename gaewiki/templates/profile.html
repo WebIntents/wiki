@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div id="pb">
+  <h1>Your profile</h1>
+  <form method="post">
+    <table class="forms">
+      <tbody>
+        <tr>
+          <th>Email:</th>
+          <td>{{ user.wiki_user.email|escape }}</td>
+        </tr>
+        <tr>
+          <th>Public page:</th>
+          <td><a href="/user%3A{{ user.get_nickname|uurlencode }}">user:{{ user.get_nickname|escape }}</a></td>
+        </tr>
+        <tr>
+          <th>Nickname:</th>
+          <td>
+            <input type="text" class="text" name="nickname" value="{{ user.get_nickname|escape }}"/>
+            <p class="hint">Used in <a href="/w/changes">the list of changes</a> etc.</p>
+          </td>
+        </tr>
+        <tr>
+          <th>Public email:</th>
+          <td>
+            <input type="text" class="text" name="email" value="{{ user.get_public_email|escape }}"/>
+            <p class="hint">Used in RSS.</p>
+          </td>
+        </tr>
+        <tr>
+          <th/>
+          <td><input type="submit" value="Save changes"/></td>
+        </tr>
+      </tbody>
+    </table>
+  </form>
+</div>
+{% endblock %}
