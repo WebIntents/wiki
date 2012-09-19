@@ -8,16 +8,18 @@ from google.appengine.api import memcache
 
 SETTINGS_PAGE_NAME = 'gaewiki:settings'
 
-DEFAULT_SETTINGS = """wiki_title: My Wiki
+DEFAULT_SETTINGS = """wiki_title: Web Intents 
 start_page: Welcome
-admin_email: nobody@example.com
+admin_email: paulkinlan@google.com 
 sidebar: gaewiki:sidebar
 footer: gaewiki:footer
 open-reading: yes
 open-editing: no
-editors: user1@example.com, user2@example.com
+editors: gaba@google.com, gbillock@google.com, kormoroske@google.com, paul.kinlan@gmail.com, paulkinlan@google.com, scottrowe@google.com, scr@google.com,
+markdown-extensions: def_list, fenced_code, toc, tables, codehilite
 interwiki-google: http://www.google.ru/search?q=%s
 interwiki-wp: http://en.wikipedia.org/wiki/Special:Search?search=%s
+extra_styles: /gae-wiki-static/html.css, /gae-wiki-static/style.css
 timezone: UTC
 ---
 # gaewiki:settings

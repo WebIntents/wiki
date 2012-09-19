@@ -1,9 +1,12 @@
 body {
   padding: 0;
   margin: 0 0 50px 0;
-  font-size: 10pt;
+  font-size: 16pt;
   line-height: 12pt;
-  font-family: arial, sans-serif;
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-weight: 300;
+  line-height: 1.2em;
+  /*font-family: arial, sans-serif;*/
   background-color: #f3f3f3;
 }
 
@@ -39,7 +42,6 @@ a, #pb a.int {
 #pb hr {
   clear: both;
 }
-
 
 #sidebar {
   display: block;
@@ -129,7 +131,7 @@ a, #pb a.int {
   list-style-type: none;
   margin: 0;
   padding: 0 0 0 20px;
-  background: transparent url(ddd-hr.png) repeat-x bottom;
+  background-color: #444;
   font-size: 8pt;
 }
 #tabs li {
@@ -140,16 +142,24 @@ a, #pb a.int {
 #tabs li a {
   margin: 0;
   line-height: 24px;
+  color: white;
   text-decoration: none;
 }
 #tabs li a:hover, #tabs .active a {
   text-decoration: underline;
 }
+
+#tabs .active a {
+  color: black; 
+}
+
 #tabs .active {
+  color: black;
   background-color: white;
-  border: solid 1px #ddd;
+  border-top: solid 1px #ddd;
   border-bottom: none;
 }
+
 #tabs.locked a.view {
   padding: 2px 0 2px 20px;
   background: transparent url(lock.png) no-repeat center left;
@@ -167,19 +177,23 @@ a, #pb a.int {
 
 
 #header {
-  padding: 2px 0;
-  font-size: 8pt;
-  line-height: 1.5em;
-  margin: 0 0 10px;
-  height: 1em;
-}
-#header .login {
-  float: right;
-}
-#header a {
-  margin: 0 4px;
+  margin-bottom: 10px;
+  color: white;
 }
 
+#header .title {
+  display: none;
+  font-size: 3em;
+}
+
+#header .login {
+  text-align: right;
+}
+
+#header a {
+  margin: 0 4px;
+  color: #444;
+}
 
 /**
  * markItUp!

@@ -37,6 +37,9 @@
     	{% block header %}
       <div id="header">
         <div class="top">
+          <div class="title">
+            Web Intents: {{ page.title|urlencode }}
+          </div>
           <div class="login">
             {% if user %}
               <strong><a href="/w/profile">{{ user.get_nickname|escape }}</a></strong>
@@ -49,7 +52,7 @@
             {% else %}
               <div align="right"><a href="{{ log_in_url|escape }}">Log in</a></div>
             {% endif %}
-          </div>
+         </div>
         </div>
       </div>
     	{% endblock %}
@@ -77,5 +80,5 @@
         {% if footer %}{{ footer|wikify|safe }}{% endif %}
       </div>
 		{% endblock %}
-    </body>
+  </body>
 </html>
