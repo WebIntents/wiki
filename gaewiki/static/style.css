@@ -10,6 +10,11 @@ body {
   background-color: #f3f3f3;
 }
 
+code, .toc {
+  font-size: initial;
+  line-height: initial;
+}
+
 body#map {
   margin: 0;
 }
