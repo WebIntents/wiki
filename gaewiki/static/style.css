@@ -10,7 +10,7 @@ body {
   background-color: #f3f3f3;
 }
 
-code, .toc {
+code, .toc, dl {
   font-size: initial;
   line-height: initial;
 }
