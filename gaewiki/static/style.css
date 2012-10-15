@@ -1,11 +1,11 @@
 body {
   padding: 0;
   margin: 0 0 50px 0;
-  font-size: 16pt;
-  line-height: 12pt;
+  font-size: 15pt;
+  line-height: 120%;
   font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
   font-weight: 300;
-  line-height: 1.2em;
+  color: #222;
   /*font-family: arial, sans-serif;*/
   background-color: #f3f3f3;
 }
@@ -17,6 +17,20 @@ body#map {
 a, #pb a.int {
   color: #0645ad; /* #0b0080 */
 }
+
+a {
+  color: #0645AD;
+}
+a:hover {
+  color: #05317A;
+}
+a:active {
+  color: #032153;
+}
+a:visited {
+  color: #031A41;
+}
+
 #pb a.missing {
   color: red;
 }
@@ -42,6 +56,11 @@ a, #pb a.int {
 #pb hr {
   clear: both;
 }
+#pb p {
+  font-size: 14px;
+  line-height: 135%;
+  margin: 0 0 1em 0;
+}
 
 #sidebar {
   display: block;
@@ -49,7 +68,7 @@ a, #pb a.int {
   left: 0px;
   width: 200px;
   margin: 0 10px 0 4px;
-  padding: 0 4px 0 10px;
+  padding: 0 4px 0 15px;
 }
 #sidebar img {
   max-width: 186px;
@@ -66,22 +85,27 @@ a, #pb a.int {
   margin: 2em 0 0;
   color: #444;
 }
-#sidebar p, #sidebar ul {
+#sidebar p {
   margin-top: .25em;
-  margin-bottom: .75em;
+  margin-bottom: 1.25em;
+}
+#sidebar p {
+  font-size: 16px;
+  font-style: italic;
+  line-height: 140%;
 }
 #sidebar ul {
-  margin-left: 0;
+  margin: 1.5em 0 1.25em 0;
   padding: 0;
 }
 #sidebar li {
   list-style-type: none;
-  margin: .25em 0;
+  margin: .4em 0;
 }
 #sidebar li ul {
+  margin-top: 0.5em;
   margin-left: 1em;
 }
-
 
 /**
  * Page Body.
@@ -91,7 +115,7 @@ a, #pb a.int {
   border-top: solid 1px #ddd;
   border-left: solid 1px #ddd;
   border-bottom: solid 1px #ddd;
-  padding: 10px 10px 10px 20px;
+  padding: 10px 20px 10px 20px;
   margin-bottom: 10px;
 }
 #pb.wtabs {
@@ -109,22 +133,39 @@ a, #pb a.int {
   padding: 0;
 }
 #pb h1, #pb h2 {
-  font-weight: normal;
-  margin: 0;
-  padding: 15px 0 6px;
+  color: #333;
+  font-weight: 600;
+  margin: 0 0 0.5em 0;
+  padding: 1em 0 0.5em;
   border-bottom: solid 1px #ddd;
 }
 #pb h1 {
-  font-size: 18pt;
+  font-size: 26pt;
 }
 #pb h2 {
-  font-size: 16pt;
-  line-height: 16pt;
+  font-size: 20pt;
+  line-height: 120%;
 }
 #pb pre {
   background-color: #eee;
   border: solid 1px #ccc;
   padding: 2px;
+  line-height: 150%;
+  border-radius: 2px;
+  box-shadow: 0 1px 1px rgba(255,255,255,0.6);
+}
+
+.top {
+  height: 35px;
+  line-height: 40px;
+  font-size: 13px;
+  margin: 0;
+  padding: 0 20px 0 0;
+}
+
+.top a {
+  text-decoration: none;
+  border-bottom: 1px solid #666;
 }
 
 #tabs {
@@ -133,6 +174,7 @@ a, #pb a.int {
   padding: 0 0 0 20px;
   background-color: #444;
   font-size: 8pt;
+  border-radius: 4px 0 0 0;
 }
 #tabs li {
   display: inline-block;
@@ -150,7 +192,7 @@ a, #pb a.int {
 }
 
 #tabs .active a {
-  color: black; 
+  color: black;
 }
 
 #tabs .active {
@@ -166,7 +208,7 @@ a, #pb a.int {
 }
 
 #page, #footer {
-  margin-left: 220px;
+  margin-left: 240px;
 }
 
 #footer {
