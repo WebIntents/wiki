@@ -1,7 +1,44 @@
 <!doctype html>
 <html>
   <head>
+    <link rel="stylesheet" type="text/css" href="/gae-wiki-static/style.css"/>
     <style>
+      body, input {
+        font-size: 14px;
+      }
+
+      select {
+
+      display: inline-block;
+border: 2px solid #BBB;
+padding: 4px 3px 3px 5px;
+margin: 0;
+font: inherit;
+outline: none;
+line-height: 1.2;
+background: #F8F8F8;
+-webkit-appearance: none;
+-webkit-border-radius: 6px;
+-moz-border-radius: 6px;
+border-radius: 6px;
+      }
+
+select::after {
+content: "▼";
+position: absolute;
+top: 0;
+right: 0;
+bottom: 0;
+font-size: 60%;
+line-height: 30px;
+padding: 0 7px;
+background: #BBB;
+color: white;
+pointer-events: none;
+-webkit-border-radius: 0 6px 6px 0;
+-moz-border-radius: 0 6px 6px 0;
+border-radius: 0 6px 6px 0;
+}
    
       body * {
        box-sizing: border-box;
